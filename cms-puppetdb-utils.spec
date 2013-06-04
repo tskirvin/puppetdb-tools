@@ -1,8 +1,8 @@
 %define vers 1
-%define lname cms-puppetdb-scripts
+%define lname cms-puppetdb-utils
 %define source0 ./%{lname}-%{vers}.tar.gz
 
-Name: cms-puppetdb-scripts
+Name: cms-puppetdb-utils
 Summary: Scripts for querying the puppetdb
 Version: %{vers}
 Release: 0
