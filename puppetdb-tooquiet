@@ -4,13 +4,12 @@
 ### Configuration #######################################################
 #########################################################################
 
-server = 'http://cms-puppet:8080'
+server = 'http://cms-puppet.fnal.gov:8080'
 nodes_url = '%s/v2/nodes' % server
 facts_url = '%s/v2/facts' % server
 
-output_string = "%-30s %s"
-
 hours = 48
+output_string = "%-30s %s"
 
 #########################################################################
 ### Declarations ########################################################
@@ -44,6 +43,8 @@ def node_too_old(node, hours):
 
 def node_print(node):
     """
+    Create a human-readable string saying how long it's been since a node
+    has checked in.
     """
     name = node['name']
 
@@ -54,6 +55,8 @@ def node_print(node):
 
 def time_from_timestamp(timestamp):
     """
+    Parse a timestamp with dateutil.parser.parse(), and set to the local
+    timezone.  This is still usable for date math.
     """
     if timestamp is None:
         return False
@@ -67,7 +70,7 @@ def time_from_timestamp(timestamp):
 #########################################################################
 
 def main():
-    usage = "%prog [options] HOSTPATTERN"
+    usage = "%prog [options] [HOSTPATTERN]"
     p = optparse.OptionParser (usage = usage,
         description = "query puppetdb for hosts that are too quiet")
     p.add_option ('--hours', dest='hours', default=hours, type='int',
@@ -75,23 +78,34 @@ def main():
 
     opt, args = p.parse_args()
 
-    query = "['~', ['fact', 'fqdn'], '^%s$']" % args[0]
+    if len(args) < 1:
+        host_search = '.*'
+    else:
+        host_search = args[0]
+
+    query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
     try:
         payload = { 'query': json.dumps(eval(query))}
     except SyntaxError:
-        parser.error('Malformed query, check examples for help')
+        p.error('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
-    r = requests.get(nodes_url, headers=headers, params=payload, verify=False)
-    items = []
-    for node in r.json():
-        if node_too_old(node, opt.hours):
-            items.append(node_print(node))
+    try:
+        r = requests.get(nodes_url, headers=headers, params=payload, verify=False)
+        items = []
+        for node in r.json():
+            if node_too_old(node, opt.hours):
+                items.append(node_print(node))
+
+    except:
+        p.error('bad json?: %s' % payload)
 
     if len(items) > 0:
-        print output_string % ('Hostname', 'Last Check-In')
+        # print output_string % ('Hostname', 'Last Check-In')
         # print output_string % ('--------', '-------------')
         for i in items: print i
+
+    sys.exit(0)
 
 if __name__ == '__main__':
     main()
@@ -105,15 +119,54 @@ if __name__ == '__main__':
 
 =head1 NAME
 
+puppetdb-tooquiet - list hosts that haven't checked in recently, or at all
+
 =head1 SYNOPSYS
 
+B<puppetdb-tooquiet>
+
+B<puppetdb-tooquiet> --hours 48
+
+B<puppetdb-tooquiet> cmssrv.\*.fnal.gov --hours 0
+
 =head1 USAGE
+
+puppetdb-tooquiet queries the puppetdb to find out which hosts have not
+checked in recently (where 'recently' is defined as 48 hours, though this
+is configurable).  The list is printed on STDOUT.
+
+=head1 OPTIONS
+
+=over 4
+
+=item I<HOSTPATTERN>
+
+Default host pattern to match.  Defaults to '.*'; remember that you may
+need to escape wild cards if you're using this from the CLI.
+
+=item --hours I<HOURS>
+
+How many hours is too many?  Defaults to 48; set to 0 if you want to list
+all hosts and their last checked-in date.
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 TODO
+
+Make this more configurable, instead of putting the server in the local
+script.
+
+Write a script to send mail based on the contents of this script.
 
 =head1 AUTHOR
 
 Tim Skirvin <tskirvin@fnal.gov>
 
-Based in part on puppetdb-grep: https://github.com/JHaals/puppetdb-grep
+Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
