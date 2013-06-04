@@ -1,0 +1,127 @@
+#!/usr/bin/python
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+server = 'http://cms-puppet:8080'
+nodes_url = '%s/v2/nodes' % server
+facts_url = '%s/v2/facts' % server
+
+output_string = "%-30s %s"
+
+hours = 48
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+from datetime import datetime, timedelta
+import dateutil.parser, dateutil.tz
+import json, optparse, requests, sys
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def node_too_old(node, hours):
+    """
+    Has it been too long since the node has checked in?  Returns True if
+    so, False otherwise.
+
+    'node' is a json object; 'hours' is the number of hours that counts
+    as "too old".  "Has never checked in" counts as "too long".
+    """
+    ts = time_from_timestamp(node['report_timestamp'])
+    if ts is False: return True
+
+    now = datetime.now(dateutil.tz.tzlocal())
+    delta = timedelta(hours=hours)
+
+    diff = now - ts
+    if diff > delta: return True
+    else:            return False
+
+def node_print(node):
+    """
+    """
+    name = node['name']
+
+    ts = time_from_timestamp(node['report_timestamp'])
+    if ts is False: ts_string = "***never checked in***"
+    else:           ts_string = ts.strftime("%Y-%m-%d %H:%M:%S %Z")
+    return output_string % (name, ts_string)
+
+def time_from_timestamp(timestamp):
+    """
+    """
+    if timestamp is None:
+        return False
+
+    ts = dateutil.parser.parse(timestamp)
+    local = ts.astimezone(dateutil.tz.tzlocal())
+    return local
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    usage = "%prog [options] HOSTPATTERN"
+    p = optparse.OptionParser (usage = usage,
+        description = "query puppetdb for hosts that are too quiet")
+    p.add_option ('--hours', dest='hours', default=hours, type='int',
+        help='how many hours is "too many"?  default: %default')
+
+    opt, args = p.parse_args()
+
+    query = "['~', ['fact', 'fqdn'], '^%s$']" % args[0]
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        parser.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    r = requests.get(nodes_url, headers=headers, params=payload, verify=False)
+    items = []
+    for node in r.json():
+        if node_too_old(node, opt.hours):
+            items.append(node_print(node))
+
+    if len(items) > 0:
+        print output_string % ('Hostname', 'Last Check-In')
+        # print output_string % ('--------', '-------------')
+        for i in items: print i
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+=head1 SYNOPSYS
+
+=head1 USAGE
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+Based in part on puppetdb-grep: https://github.com/JHaals/puppetdb-grep
+
+=head1 COPYRIGHT
+
+Copyright 2013, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""
