@@ -1,0 +1,19 @@
+#!/bin/bash
+# Build the local .tar.gz file from localhost.  The tar command is
+# currently using too many 
+# work on this more later.
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+PACKAGE=`grep '%define lname' *spec | awk ' { print $3 } '`
+VERSION=`grep '%define vers'  *spec | awk ' { print $3 } '`
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+tar --exclude '.git' --exclude $0 --exclude '*.tar.gz' --exclude '*.sw*' \
+    --exclude '.gitignore' --exclude '.tar' \
+    -czpf ${PACKAGE}-${VERSION}.tar.gz .
