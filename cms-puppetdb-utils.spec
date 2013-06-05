@@ -5,7 +5,7 @@
 Name: cms-puppetdb-utils
 Summary: Scripts for querying the puppetdb
 Version: %{vers}
-Release: 0
+Release: 1
 License: BSD
 Packager: Tim Skirvin <tskirvin@fnal.gov>
 Group: Applications/System
@@ -58,5 +58,10 @@ fi
 /usr/sbin/*
 
 %changelog
+* Tue Jun 04 2013   Tim Skirvin <tskirvin@fnal.gov>  1-1
+- initial version: puppetdb-node-events
+- initial version: puppetdb-node-report
+- initial version: puppetdb-node-resources
+
 * Tue Jun 04 2013   Tim Skirvin <tskirvin@fnal.gov>  1-0
 - initial version: puppetdb-tooquiet

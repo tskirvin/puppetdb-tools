@@ -1,0 +1,192 @@
+#!/usr/bin/python
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+server = 'http://cms-puppet.fnal.gov:8080'
+nodes_url = '%s/v2/nodes' % server
+facts_url = '%s/v2/facts' % server
+report_url = '%s/experimental/events' % server
+
+output_string = "%-25s %s: %s"
+
+hours = 2
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+from datetime import datetime, timedelta
+import dateutil.parser, dateutil.tz
+import json, optparse, requests, sys
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def timestamp_from_time(time):
+    """
+    """
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def time_from_timestamp(timestamp):
+    """
+    Parse a timestamp with dateutil.parser.parse(), and set to the local
+    timezone.  This is still usable for date math.
+    """
+    if timestamp is None:
+        return False
+
+    ts = dateutil.parser.parse(timestamp)
+    local = ts.astimezone(dateutil.tz.tzlocal())
+    return local
+
+def hours_ago(hours):
+    """
+    """
+    time = datetime.now(dateutil.tz.tzlocal()) - timedelta(hours=hours)
+    return time
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    usage = "%prog [options] [HOSTPATTERN]"
+    p = optparse.OptionParser (usage = usage,
+        description = "query puppetdb for facts from matching hosts")
+    p.add_option ('--debug', dest='debug', action='store_true')
+    p.add_option ('--hours', dest='hours', default=hours, type='int',
+        help='how many hours of reports?  default: %default')
+
+    opt, args = p.parse_args()
+
+    if len(args) < 1: 
+        p.print_help()
+        sys.exit(-1)
+    else:
+        host = args[0]
+
+    host_query = "['=', 'certname', '%s']" % host
+    time_query_start = "['>', 'timestamp', '%s']" \
+        % timestamp_from_time(hours_ago(opt.hours))
+    time_query_stop = "['<', 'timestamp', '%s']" \
+        % timestamp_from_time(hours_ago(0))
+    query = "['and', %s, %s, %s]" \
+        % (host_query, time_query_start, time_query_stop)
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        r = requests.get(report_url, headers=headers, params=payload, verify=False)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        print "no matches"
+        sys.exit(-1)
+
+    output = []
+    for node in r.json():
+        if node['status'] == 'skipped':
+            pass
+        else:
+            new = node['new-value']
+            old = node['old-value']
+            title = node['resource-title']
+            type  = node['resource-type']
+            status = node['status']
+            ts = time_from_timestamp(node['timestamp'])
+
+            
+            string = "%s  %s[%s]: %s -> %s (%s)" % (ts, type, title, old, new, status)
+            output.append(string)
+            if opt.debug:
+                for key in sorted(node.keys()):
+                    value = node[key]
+                    if isinstance(value, dict):
+                        print "%s:" % key
+                        for j in sorted(value.keys()):
+                            print "    %s: %s" % (j, value[j])
+                    elif isinstance(value, list):
+                        print "%s: %s " % (key, ', '.join(value))
+                    else:
+                        print "%s: %s" % (key, value)
+                print ""
+
+    print "\n".join(sorted(output))
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-node-events - list events on a per-host basis
+
+=head1 SYNOPSYS
+
+B<puppetdb-node-events> cmssrv167.fnal.gov
+
+B<puppetdb-node-events> cmssrv167.fnal.gov --hours 480
+
+=head1 USAGE
+
+puppetdb-node-events queries the puppetdb to discover all of the events
+that have occurred on the given host.
+
+=head1 OPTIONS
+
+=over 4
+
+=item I<HOSTPATTERN>
+
+Default host pattern to match.  No default; you will want to list a single
+fqdn, likely.  
+
+=item --debug
+
+If set, we'll print raw debugging information as we go.
+
+=item --hours I<HOURS>
+
+How many hours to go back.  Defaults to 48.
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 TODO
+
+Make this more configurable, instead of putting the server in the local
+script.
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+Based in part on https://github.com/JHaals/puppetdb-grep
+
+=head1 COPYRIGHT
+
+Copyright 2013, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""
