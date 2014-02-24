@@ -1,2 +1,36 @@
-## Which files should we track, for the purposes of 'maketar'?
-FILES_LOCAL = usr Makefile.local
+##############################################################################
+### cms-rpmtools Makefile.local ##############################################
+##############################################################################
+## Meant for use with the Makefile from cms-rpmtools.  Assuming the package is 
+## at the same level, run:
+##
+##    ln -s ../cms-rpmtools/Makefile .
+##    cp ../cms-rpmtools/Makefile.local .
+##
+## This should give you access to a consistent Makefile.  You're in charge 
+## of your own *.spec file.
+
+##############################################################################
+### Tarball Configuration ####################################################
+##############################################################################
+
+## We will only rebuild our .tar file if one of these files changes: the 
+## Makefile itself, Makefile.local, the *.spec file, and anything listed in 
+## $(FILES_LOCAL).
+# FILES_LOCAL = usr etc
+FILES_LOCAL = usr
+
+## When creating the local 
+# TAR_EXCLUDE = --exclude *.bak --exclude .git
+TAR_EXCLUDE = 
+
+##############################################################################
+### Targets ##################################################################
+##############################################################################
+## Set your own targets.  Note that these will appear at the top.
+
+all:  		rpm-6-nosign rpm-sign
+confirm: 	confirm-slf6
+copy:		copy-slf6
+rpm-sign: 	sign-slf6
+test: 		rpm-6-nosign

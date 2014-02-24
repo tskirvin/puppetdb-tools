@@ -1,29 +1,25 @@
-%define vers 1
-%define lname cms-puppetdb-utils
-%define source0 ./%{lname}-%{vers}.tar.gz
+Name:           cms-puppetdb-utils
+Summary:        Scripts for querying the puppetdb
+Version:        1
+Release:        2
+Packager:       Tim Skirvin <tskirvin@fnal.gov>
+Group:          Applications/System
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        %{name}-%{version}-%{release}.tar.gz
+BuildArch:      noarch
+Requires:       python python-dateutil python-requests
 
-Name: cms-puppetdb-utils
-Summary: Scripts for querying the puppetdb
-Version: %{vers}
-Release: 1
-License: BSD
-Packager: Tim Skirvin <tskirvin@fnal.gov>
-Group: Applications/System
-BuildRoot: /var/tmp/%{name}-buildroot
-Vendor: Fermi CMS
-Source0: %{source0}
-BuildArch: noarch
-Distribution: CMS
-Requires: python python-dateutil python-requests
-# BuildRequires: rsync
-
-URL: http://www.fnal.gov/
+BuildRequires:  rsync
+Vendor:         Fermi USCMS-T1
+License:        BSD
+Distribution:   CMS
+URL:            http://www.fnal.gov/
 
 %description
 USCMS-T1 @ FNAL - scripts for querying the puppetdb
 
 %prep
-# On the following line, you'll have to add "-a n" for each source file
+
 %setup -c -n %{name}-%{version}
 
 %build
@@ -58,6 +54,9 @@ fi
 /usr/sbin/*
 
 %changelog
+* Mon Feb 24 2014   Tim Skirvin <tskirvin@fnal.gov>  1-2
+- cleanup for local build system and spec file
+
 * Tue Jun 04 2013   Tim Skirvin <tskirvin@fnal.gov>  1-1
 - initial version: puppetdb-node-events
 - initial version: puppetdb-node-report
