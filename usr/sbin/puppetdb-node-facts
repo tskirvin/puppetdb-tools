@@ -4,7 +4,7 @@
 ### Configuration #######################################################
 #########################################################################
 
-server = 'http://cms-puppet.fnal.gov:8080'
+server = 'http://cmspuppetdb1.fnal.gov:8080'
 nodes_url = '%s/v2/nodes' % server
 facts_url = '%s/v2/facts' % server
 

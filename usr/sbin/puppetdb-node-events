@@ -4,10 +4,10 @@
 ### Configuration #######################################################
 #########################################################################
 
-server = 'http://cms-puppet.fnal.gov:8080'
+server = 'http://cmspuppetdb1.fnal.gov:8080'
 nodes_url = '%s/v2/nodes' % server
 facts_url = '%s/v2/facts' % server
-report_url = '%s/experimental/events' % server
+report_url = '%s/v3/events' % server
 
 output_string = "%-25s %s: %s"
 

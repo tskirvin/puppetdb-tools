@@ -1,7 +1,7 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
 Version:        1
-Release:        2
+Release:        3
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -54,6 +54,10 @@ fi
 /usr/sbin/*
 
 %changelog
+* Mon Feb 24 2014   Tim Skirvin <tskirvin@fnal.gov>  1-3
+- now pointing at cmspuppetdb1
+- puppetdb-node-events now points at v3 API
+
 * Mon Feb 24 2014   Tim Skirvin <tskirvin@fnal.gov>  1-2
 - cleanup for local build system and spec file
 
