@@ -37,6 +37,7 @@ for i in `ls usr/sbin`; do
 done
 
 rsync -Crlpt ./usr ${RPM_BUILD_ROOT}
+rsync -Crlpt ./etc ${RPM_BUILD_ROOT}
 for i in bin sbin; do
     if [ -d ${RPM_BUILD_ROOT}/$i ]; then
         chmod 0755 ${RPM_BUILD_ROOT}
@@ -52,6 +53,7 @@ fi
 %defattr(-,root,root)
 /usr/share/man/man8/*
 /usr/sbin/*
+/etc/puppetdb/puppetdb.json
 
 %changelog
 * Mon Feb 24 2014   Tim Skirvin <tskirvin@fnal.gov>  1-3

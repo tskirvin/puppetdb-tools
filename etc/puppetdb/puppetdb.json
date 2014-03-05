@@ -1,0 +1,8 @@
+{
+    "server": "http://cmspuppetdb1.fnal.gov:8080",
+    "nodes_url_base": "/v3/nodes",
+    "events_url_base": "/v3/events",
+    "facts_url_base": "/v3/facts",
+    "reports_url_base": "/v3/reports",
+    "event_counts_url_base": "/v3/event-counts"
+}

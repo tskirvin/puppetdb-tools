@@ -49,7 +49,7 @@ def node_print(node):
     name = node['name']
 
     ts = time_from_timestamp(node['report_timestamp'])
-    if ts is False: ts_string = "***never checked in***"
+    if ts is False: ts_string = "***no check in records in puppetdb***"
     else:           ts_string = ts.strftime("%Y-%m-%d %H:%M:%S %Z")
     return output_string % (name, ts_string)
 

@@ -18,7 +18,7 @@
 ## Makefile itself, Makefile.local, the *.spec file, and anything listed in 
 ## $(FILES_LOCAL).
 # FILES_LOCAL = usr etc
-FILES_LOCAL = usr
+FILES_LOCAL = usr etc
 
 ## When creating the local 
 # TAR_EXCLUDE = --exclude *.bak --exclude .git

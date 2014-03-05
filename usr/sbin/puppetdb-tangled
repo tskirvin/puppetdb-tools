@@ -1,0 +1,272 @@
+#!/usr/bin/python
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+config_file = '/etc/puppetdb/puppetdb.json'
+hours = 4
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+from datetime import datetime, timedelta
+import dateutil.parser, dateutil.tz
+import json, optparse, requests, sys
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
+def time_from_timestamp(timestamp):
+    """
+    Parse a timestamp with dateutil.parser.parse(), and set to the local
+    timezone.  This is still usable for date math.
+    """
+    if timestamp is None:
+        return False
+
+    ts = dateutil.parser.parse(timestamp)
+    local = ts.astimezone(dateutil.tz.tzlocal())
+    return local
+
+def timestamp_from_time(time):
+    """
+    """
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def hours_ago(hours):
+    """
+    Return the seconds-since-epoch of XX hours ago.
+    """
+    time = datetime.now(dateutil.tz.tzlocal()) - timedelta(hours=hours)
+    return time
+
+def hostTangled(hostname, hours):
+    """
+    Report on whether a host is tangled.  This consists of looking up
+    all events that have occurred in the last $hours, and seeing if any
+    events are repeated.  Repeated events are then reported on STDOUT,
+    except for events of the type 'skipped'.
+    """
+
+    host_query = "['=', 'certname', '%s']" % hostname
+    time_query_start = "['>', 'timestamp', '%s']" \
+        % timestamp_from_time(hours_ago(hours))
+    time_query_stop = "['<', 'timestamp', '%s']" \
+        % timestamp_from_time(hours_ago(0))
+    query = "['and', %s, %s, %s]" \
+        % (host_query, time_query_start, time_query_stop)
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.events_url_base )
+        r = requests.get(url, headers=headers, params=payload)
+        items = {}
+        for event in r.json():
+            string = changeString(event, True)
+            if string is not None:
+                if not string in items: items[string] = 1
+                else:                   items[string] = items[string] + 1
+
+        for i in items:
+            if items[i] > 1:
+                print "%s: %s (%d)" % (hostname, i, items[i])
+
+    except Exception, e:
+        print 'bad json?: %s (%s)' % (payload, e)
+        sys.exit(-1)
+
+def changeString(event, skip):
+    """
+    Creates and returns a single-line formatted string describing a single
+    event, based on the output of the puppetdb 'events' endpoint.  This
+    string is generally of the format:
+
+        Service[ipmi]: stopped -> running (success)
+
+    Events with the status 'skipped' are skipped if the skip flag is set.
+    """
+
+    new = event['new-value']
+    old = event['old-value']
+    title = event['resource-title']
+    type  = event['resource-type']
+    status = event['status']
+
+    if skip and status == 'skipped':
+        return None
+
+    string = "%s[%s]: %s -> %s (%s)" % (type, title, old, new, status)
+    return string
+
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    usage = "%prog [options] [HOSTPATTERN]"
+    parseConfig(config_file)
+
+    global p
+    p = optparse.OptionParser (usage = usage,
+        description = "query puppetdb for hosts that are tangled")
+    p.add_option ('--debug', dest='debug', action='store_true', default=False)
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--events_url_base', dest='events_url_base',
+        default=config['events_url_base'],
+        help="relative URL to puppetdb for default event query")
+    p.add_option ('--event_counts_url_base', dest='event_counts_url_base',
+        default=config['event_counts_url_base'],
+        help="relative URL to puppetdb for event counts query")
+    p.add_option ('--hours', dest='hours', default=hours, type='int',
+        help='how many hours of reports?  default: %default')
+
+    global opt
+    opt, args = p.parse_args()
+
+    if len(args) < 1: host_search = '.*'
+    else:             host_search = args[0]
+
+    try:
+        host_query = ['~', 'certname', '^%s$' % host_search ]
+        time_query_start = "['>', 'timestamp', '%s']" \
+            % timestamp_from_time(hours_ago(opt.hours))
+        time_query_stop = "['<', 'timestamp', '%s']" \
+            % timestamp_from_time(hours_ago(0))
+        query = "['and', %s, %s, %s]" \
+            % (host_query, time_query_start, time_query_stop)
+
+        payload = {
+          'query':         json.dumps(eval(query)),
+          'summarize-by':  'certname',
+          'count-by':      'certname',
+        }
+        payload['counts-filter'] = json.dumps([ '>', 'successes', 0 ])
+
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.event_counts_url_base )
+        r = requests.get(url, headers=headers, params=payload)
+        for node in r.json():
+            if 'subject' in node:
+                hostTangled(node['subject']['title'], opt.hours)
+
+    except Exception, e:
+        p.error(e)
+    except:
+        p.error('bad json?: %s' % payload)
+
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-tangled - list tangled hosts/events from puppetdb
+
+=head1 SYNOPSYS
+
+B<puppetdb-tangled>
+
+B<puppetdb-tangled> --hours 48
+
+B<puppetdb-tangled> cmssrv.\*.fnal.gov --hours 48
+
+=head1 USAGE
+
+puppetdb-tangled queries the puppetdb to find hosts which are "tangled", and
+reports on the associated hosts/events on STDOUT.
+
+A "tangled" host is defined as one where the most recent report was a
+success in which something changed (an event status changed), and some
+number of these changes have occurred several time in the last several
+runs - that is, something is changing back and forth over and over again,
+or a "success" isn't really a success at all.  
+
+The list of associated events is printed on STDOUT, in the format:
+
+    cmsdev23.fnal.gov: Exec[create_grid_home_directories]: notrun -> [u'0'] (success) (8)
+    cmsdev23.fnal.gov: Exec[install_java_7]: notrun -> [u'0'] (success) (8)
+    cmsdev23.fnal.gov: Exec[gums-host-cron]: notrun -> [u'0'] (failure) (8)
+    cmsdev23.fnal.gov: Package[condor]: absent -> present (failure) (8)
+
+That is: hostname, event type, event name, old value, new value,
+success/failure, and the count of the number of times this event appeared
+in the matching time period.  Only events that have occurred multiple
+times will be listed.
+
+Events of the type 'skipped' are skipped.
+
+=head1 OPTIONS
+
+=over 4
+
+=item I<HOSTPATTERN>
+
+Default host pattern to match.  Defaults to '.*'; remember that you may
+need to escape wild cards if you're using this from the CLI.
+
+=item --hours I<HOURS>
+
+How many hours back will we check to see if the host is tangled?  Defaults
+to 4 (which is currently 8 reports); you can't go further back than 168.
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+Based in part on https://github.com/JHaals/puppetdb-grep
+
+=head1 COPYRIGHT
+
+Copyright 2014, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
+
+"""
