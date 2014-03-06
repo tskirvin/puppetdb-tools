@@ -1,7 +1,7 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
-Version:        1
-Release:        3
+Version:        2
+Release:        0
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,6 +56,11 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Thu Mar 06 2014   Tim Skirvin <tskirvin@fnal.gov>  2-0
+- added puppetdb-node-failed and puppetdb-node-tangled
+- puppetdb-tooquiet changed its text
+- added central configuration file in /etc/puppetdb
+
 * Mon Feb 24 2014   Tim Skirvin <tskirvin@fnal.gov>  1-3
 - now pointing at cmspuppetdb1
 - puppetdb-node-events now points at v3 API
