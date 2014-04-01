@@ -28,7 +28,7 @@ import json, optparse, requests, sys
 def timestamp_from_time(time):
     """
     """
-    return time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 def time_from_timestamp(timestamp):
     """
