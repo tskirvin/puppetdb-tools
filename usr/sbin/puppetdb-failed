@@ -10,6 +10,8 @@ config_file = '/etc/puppetdb/puppetdb.json'
 ### Declarations ########################################################
 #########################################################################
 
+from datetime import datetime, timedelta
+import dateutil.parser, dateutil.tz
 import json, optparse, requests, sys
 
 #########################################################################
@@ -33,6 +35,29 @@ def parseConfig(file):
         sys.exit (2)
 
     return config
+
+def timestamp_from_time(time):
+    """
+    """
+    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+def time_from_timestamp(timestamp):
+    """
+    Parse a timestamp with dateutil.parser.parse(), and set to the local
+    timezone.  This is still usable for date math.
+    """
+    if timestamp is None:
+        return False
+
+    ts = dateutil.parser.parse(timestamp)
+    local = ts.astimezone(dateutil.tz.tzlocal())
+    return local
+
+def hours_ago(hours):
+    """
+    """
+    time = datetime.now(dateutil.tz.tzlocal()) - timedelta(hours=hours)
+    return time
 
 #########################################################################
 ### main () #############################################################
@@ -62,10 +87,12 @@ def main():
         host_search = args[0]
 
     try:
+        ts = timestamp_from_time(hours_ago(0))
         host_query = ['~', 'certname', '^%s$' % host_search ]
-        time_query = "['=', 'latest_report?', 'true']"
-        query = "['and', %s, %s]" \
-            % (host_query, time_query)
+        time_query = "['=', 'latest_report?', 'false']"
+        time_query2 = "['<', 'timestamp', '%s']" % ts
+        query = "['and', %s, %s, %s]" \
+            % (host_query, time_query, time_query2)
 
         payload = {
           'query':         json.dumps(eval(query)),
