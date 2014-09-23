@@ -1,0 +1,185 @@
+#!/usr/bin/python
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+config_file = '/etc/puppetdb/puppetdb.json'
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+from datetime import datetime, timedelta
+import dateutil.parser, dateutil.tz
+import json, optparse, re, requests, sys
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
+def hostRole():
+    """
+    """
+
+    query = "['=', 'name', 'role']"
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.facts_url_base )
+        r = requests.get(url, headers=headers, params=payload, verify=False)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        print "no matches"
+        sys.exit(-1)
+
+    roles = {}
+    for node in r.json():
+        name = node['certname']
+        roles[name] = node['value']
+
+    return roles
+
+def hostBackup():
+    """
+    """
+
+    query = "['and', %s, %s]" % (
+        ['=', 'type', 'Class'],
+        ['=', 'title', 'Backup::Tibs'],
+    )
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.resources_url_base )
+        r = requests.get(url, headers=headers, params=payload, verify=False)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        print "no matches"
+        sys.exit(-1)
+
+    backup = {}
+    for node in r.json():
+        name = node['certname']
+        backup[name] = True
+
+    return backup
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    usage = "%prog [options] [HOSTPATTERN]"
+    parseConfig(config_file)
+
+    global p
+    p = optparse.OptionParser (usage = usage,
+        description = "query puppetdb for facts from matching hosts")
+    p.add_option ('--debug', dest='debug', action='store_true', default=False)
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--facts_url_base', dest='facts_url_base',
+        default=config['facts_url_base'],
+        help="relative URL to puppetdb for default facts query")
+    p.add_option ('--resources_base', dest='resources_url_base',
+        default='/v3/resources',
+        help="relative URL to puppetdb for default resources query")
+
+    global opt
+    opt, args = p.parse_args()
+
+    roles = hostRole()
+    backup = hostBackup()
+
+    for host in sorted (roles.keys()):
+        item = []
+        item.append (re.split('\.', host)[0])
+        item.append (roles[host])
+
+        bak = 'False'
+        if backup.has_key(host): bak = 'True'
+        item.append(bak)
+  
+        print ','.join(item)
+
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-host-csv - generate a CSV of puppet data for use in our twiki
+
+=head1 SYNOPSYS
+
+B<puppetdb-host-csv>
+
+=head1 USAGE
+
+puppetdb-host-csv queries the puppetdb to find two pieces of data: the 
+system role, and whether the system is backed up.  The data is then sent
+to STDOUT as a comma-separated-value list.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 COPYRIGHT
+
+Copyright 2014, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""

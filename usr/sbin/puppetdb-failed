@@ -59,6 +59,41 @@ def hours_ago(hours):
     time = datetime.now(dateutil.tz.tzlocal()) - timedelta(hours=hours)
     return time
 
+def nodesFailed (host_search, opt, p):
+    """ 
+    Return a list of hosts that failed.
+    """ 
+
+    try:
+        host_query = ['~', 'certname', '^%s$' % host_search ]
+        time_query = "['=', 'latest_report?', 'true']"
+        query = "['and', %s, %s]" \
+            % (host_query, time_query)
+
+        payload = {
+          'query':         json.dumps(eval(query)),
+          'summarize-by':  'certname',
+          'count-by':      'certname',
+          'counts-filter': json.dumps(['>', 'failures', 0 ])
+        }
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.event_counts_url_base )
+        r = requests.get(url, headers=headers, params=payload)
+        items = []
+        for node in r.json():
+            if 'subject' in node:
+                items.append(node['subject']['title'])
+        return items
+
+    except Exception, e: 
+        p.error(e)
+    except:
+        p.error('bad json?: %s' % payload)
+
 #########################################################################
 ### main () #############################################################
 #########################################################################
@@ -86,35 +121,29 @@ def main():
     else:
         host_search = args[0]
 
-    try:
-        ts = timestamp_from_time(hours_ago(0))
-        host_query = ['~', 'certname', '^%s$' % host_search ]
-        time_query = "['=', 'latest_report?', 'false']"
-        time_query2 = "['<', 'timestamp', '%s']" % ts
-        query = "['and', %s, %s, %s]" \
-            % (host_query, time_query, time_query2)
+    failed = nodesFailed (host_search, opt, p)
 
-        payload = {
-          'query':         json.dumps(eval(query)),
-          'summarize-by':  'certname',
-          'count-by':      'certname',
-          'counts-filter': json.dumps(['>', 'failures', 0 ])
-        }
+    query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
+    try:
+        payload = { 'query': json.dumps(eval(query))}
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     try:
-        url = "%s%s" % ( opt.server, opt.event_counts_url_base )
-        r = requests.get(url, headers=headers, params=payload)
+        nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
+        r = requests.get(nodes_url, headers=headers, params=payload, 
+                verify=False)
+        items = []
         for node in r.json():
-            if 'subject' in node:
-                print node['subject']['title']
 
-    except Exception, e: 
-        p.error(e)
+            for i in failed:
+                if i == node['name']: items.append(node['name'])
     except:
-        p.error('bad json?: %s' % payload)
+        p.error ('bad json?: %s' % payload)
+
+    if len(items) > 0:
+        for i in sorted(items): print i
 
     sys.exit(0)
 
