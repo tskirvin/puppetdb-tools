@@ -1,7 +1,7 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
 Version:        2
-Release:        0
+Release:        1
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,6 +56,10 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Thu Mar 06 2014   Tim Skirvin <tskirvin@fnal.gov>  2-1
+- puppetdb-node-csv - new script
+- puppetdb-failed - only lists puppetdb nodes that are active
+
 * Thu Mar 06 2014   Tim Skirvin <tskirvin@fnal.gov>  2-0
 - added puppetdb-node-failed and puppetdb-node-tangled
 - puppetdb-tooquiet changed its text
