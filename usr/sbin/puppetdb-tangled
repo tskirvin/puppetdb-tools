@@ -92,9 +92,12 @@ def hostTangled(hostname, hours):
                 if not string in items: items[string] = 1
                 else:                   items[string] = items[string] + 1
 
+        text = []
         for i in items:
             if items[i] > 1:
-                print "%s: %s (%d)" % (hostname, i, items[i])
+                text.append("%s: %s (%d)" % (hostname, i, items[i]))
+
+        return text
 
     except Exception, e:
         print 'bad json?: %s (%s)' % (payload, e)
@@ -176,9 +179,13 @@ def main():
     try:
         url = "%s%s" % ( opt.server, opt.event_counts_url_base )
         r = requests.get(url, headers=headers, params=payload)
+        text = []
         for node in r.json():
             if 'subject' in node:
-                hostTangled(node['subject']['title'], opt.hours)
+                for i in hostTangled(node['subject']['title'], opt.hours):
+                    text.append(i)
+
+        for i in sorted(text): print i
 
     except Exception, e:
         p.error(e)
