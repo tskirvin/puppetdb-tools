@@ -70,37 +70,6 @@ def hostPrimary():   return hostFact('primary')
 def hostRole():      return hostFact('role')
 def hostSecondary(): return hostFact('secondary')
 
-def hostBackup():
-    """
-    """
-
-    query = "['and', %s, %s]" % (
-        ['=', 'type', 'Class'],
-        ['=', 'title', 'Backup::Tibs'],
-    )
-    try:
-        payload = { 'query': json.dumps(eval(query))}
-    except SyntaxError:
-        p.error('Malformed query, check examples for help')
-
-    headers = {'Accept': 'application/json'}
-    try:
-        url = "%s%s" % ( opt.server, opt.resources_url_base )
-        r = requests.get(url, headers=headers, params=payload, verify=False)
-    except Exception, e:
-        p.error('%s (bad json?: %s)' % (e, payload))
-
-    if len(r.json()) == 0:
-        print "no matches"
-        sys.exit(-1)
-
-    backup = {}
-    for node in r.json():
-        name = node['certname']
-        backup[name] = True
-
-    return backup
-
 #########################################################################
 ### main () #############################################################
 #########################################################################
@@ -126,18 +95,16 @@ def main():
     opt, args = p.parse_args()
 
     roles = hostRole()
-    backup = hostBackup()
     primary = hostPrimary()
     secondary = hostSecondary()
+
+    print "%-23s %23s %15s %15s" % ('Host', 'Role', 'Primary', 'Secondary')
+    print
 
     for host in sorted (roles.keys()):
         item = []
         item.append (re.split('\.', host)[0])
         item.append (roles[host])
-
-        bak = 'False'
-        if backup.has_key(host): bak = 'True'
-        item.append(bak)
 
         p = [ 'unknown' ]
         if primary.has_key(host): 
@@ -149,7 +116,7 @@ def main():
             s = secondary[host].split(',')
         item.append(' '.join(s))
   
-        print ','.join(item)
+        print "%-23s %23s %15s %15s" % (item[0], item[1], item[2], item[3])
 
     sys.exit(0)
 
@@ -165,31 +132,16 @@ if __name__ == '__main__':
 
 =head1 NAME
 
-puppetdb-host-csv - generate a CSV of puppet data for use in our twiki
+puppetdb-manager - list all hosts with their roles managers
 
 =head1 SYNOPSYS
 
-B<puppetdb-host-csv>
+B<puppetdb-manager>
 
 =head1 USAGE
 
-puppetdb-host-csv queries the puppetdb to find a few pieces of data:
-
-=over 2
-
-=item 0. (hostname)
-
-=item 1. The system role
-
-=item 2. Is this system backed up?
-
-=item 3. The system primary
-
-=item 4. The system secondary
-
-=back
-
-The data is then sent to STDOUT as a comma-separated-value list.
+puppetdb-host-csv queries the puppetdb to find out system roles,
+primaries, and secondaries, and prints the whole thing to STDOUT.
 
 =head1 OPTIONS
 

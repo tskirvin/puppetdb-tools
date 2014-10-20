@@ -59,6 +59,34 @@ def hours_ago(hours):
     time = datetime.now(dateutil.tz.tzlocal()) - timedelta(hours=hours)
     return time
 
+def hostFact(fact):
+    """
+    Return a hash of name-to-fact values for a given fact.
+    """
+    query = "['=', 'name', '%s']" % fact
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( config['server'], config['facts_url_base'] )
+        r = requests.get(url, headers=headers, params=payload, verify=False)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        print "no matches"
+        sys.exit(-1)
+
+    hash = {}
+    for node in r.json():
+        name = node['certname']
+        hash[name] = node['value']
+
+    return hash
+
 def nodesFailed (host_search, opt, p):
     """ 
     Return a list of hosts that failed.
@@ -102,6 +130,7 @@ def main():
     usage = "%prog [options] [HOSTPATTERN]"
     parseConfig(config_file)
 
+    global p
     p = optparse.OptionParser (usage = usage,
         description = "query puppetdb for hosts that are tangled")
     p.add_option ('--debug', dest='debug', action='store_true', default=False)
@@ -114,6 +143,7 @@ def main():
         default=config['event_counts_url_base'],
         help="relative URL to puppetdb for event counts query")
 
+    global opt
     opt, args = p.parse_args()
 
     if len(args) < 1:
@@ -142,8 +172,14 @@ def main():
     except:
         p.error ('bad json?: %s' % payload)
 
+    global roles
+    roles = hostFact('role')
+
     if len(items) > 0:
-        for i in sorted(items): print i
+        for i in sorted(items): 
+            if i in roles: role = roles[i]
+            else:          role = 'unknown'
+            print "%-30s  %20s" % (i, role)
 
     sys.exit(0)
 

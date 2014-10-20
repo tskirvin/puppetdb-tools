@@ -4,12 +4,10 @@
 ### Configuration #######################################################
 #########################################################################
 
-server = 'http://cmspuppetdb1.fnal.gov:8080'
-nodes_url = '%s/v2/nodes' % server
-facts_url = '%s/v2/facts' % server
+config_file = '/etc/puppetdb/puppetdb.json'
 
 hours = 24
-output_string = "%-30s %s"
+output_string = "%-30s %25s %23s"
 
 #########################################################################
 ### Declarations ########################################################
@@ -17,11 +15,57 @@ output_string = "%-30s %s"
 
 from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
-import json, optparse, requests, sys
+import json, optparse, re, requests, sys
 
 #########################################################################
 ### Subroutines #########################################################
 #########################################################################
+
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
+def hostFact(fact):
+    """
+    Return a hash of name-to-fact values for a given fact.
+    """
+    query = "['=', 'name', '%s']" % fact
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( config['server'], config['facts_url_base'] )
+        r = requests.get(url, headers=headers, params=payload, verify=False)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        print "no matches"
+        sys.exit(-1)
+
+    hash = {}
+    for node in r.json():
+        name = node['certname']
+        hash[name] = node['value']
+
+    return hash
 
 def node_too_old(node, hours):
     """
@@ -49,9 +93,13 @@ def node_print(node):
     name = node['name']
 
     ts = time_from_timestamp(node['report_timestamp'])
-    if ts is False: ts_string = "***no records in puppetdb***"
+    if ts is False: ts_string = "**no puppetdb records**"
     else:           ts_string = ts.strftime("%Y-%m-%d %H:%M:%S %Z")
-    return output_string % (name, ts_string)
+    
+    if name in roles: role = roles[name]
+    else:             role = 'unknown'
+
+    return output_string % (name, ts_string, role)
 
 def time_from_timestamp(timestamp):
     """
@@ -71,11 +119,15 @@ def time_from_timestamp(timestamp):
 
 def main():
     usage = "%prog [options] [HOSTPATTERN]"
+    parseConfig(config_file)
+
+    global p
     p = optparse.OptionParser (usage = usage,
         description = "query puppetdb for hosts that are too quiet")
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours is "too many"?  default: %default')
 
+    global opt
     opt, args = p.parse_args()
 
     if len(args) < 1:
@@ -91,18 +143,20 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
+        nodes_url = "%s%s" % ( config['server'], config['nodes_url_base'] )
         r = requests.get(nodes_url, headers=headers, params=payload, verify=False)
-        items = []
-        for node in r.json():
-            if node_too_old(node, opt.hours):
-                items.append(node_print(node))
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
 
-    except:
-        p.error('bad json?: %s' % payload)
+    global roles
+    roles = hostFact('role')
+
+    items = []
+    for node in r.json():
+        if node_too_old(node, opt.hours):
+            items.append(node_print(node))
 
     if len(items) > 0:
-        # print output_string % ('Hostname', 'Last Check-In')
-        # print output_string % ('--------', '-------------')
         for i in items: print i
 
     sys.exit(0)

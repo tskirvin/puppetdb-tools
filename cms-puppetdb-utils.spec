@@ -1,7 +1,7 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
 Version:        2
-Release:        1
+Release:        3
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,9 +56,19 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Mon Oct 20 2014   Tim Skirvin <tskirvin@fnal.gov>  2-3
+- puppetdb-manager - lists hosts with associated primaries/secondaries
+- puppetdb-failed - now prints system role along with the hostname
+- puppetdb-tooquiet - now prints system role along with the hostname 
+- puppetdb-tooquiet - now following central json config
+
+* Mon Oct 20 2014   Tim Skirvin <tskirvin@fnal.gov>  2-2
+- puppetdb-node-csv - now prints primary/secondary as well
+
 * Thu Mar 06 2014   Tim Skirvin <tskirvin@fnal.gov>  2-1
 - puppetdb-node-csv - new script
 - puppetdb-failed - only lists puppetdb nodes that are active
+- puppetdb-failed, puppetdb-tangled - now returns in sorted order
 
 * Thu Mar 06 2014   Tim Skirvin <tskirvin@fnal.gov>  2-0
 - added puppetdb-node-failed and puppetdb-node-tangled
