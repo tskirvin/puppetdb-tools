@@ -1,0 +1,164 @@
+#!/usr/bin/python
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+config_file = '/etc/puppetdb/puppetdb.json'
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+from datetime import datetime, timedelta
+import dateutil.parser, dateutil.tz
+import json, optparse, re, requests, sys
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
+
+def hostFact(fact):
+    """
+    Return a hash of name-to-fact values for a given fact.
+    """
+    query = "['=', 'name', '%s']" % fact
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.facts_url_base )
+        r = requests.get(url, headers=headers, params=payload, verify=False)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        print "no matches"
+        sys.exit(-1)
+
+    hash = {}
+    for node in r.json():
+        name = node['certname']
+        hash[name] = node['value']
+
+    return hash 
+
+def hostKernel():   return hostFact('kernelrelease')
+def hostUptime():   return hostFact('uptime_seconds')
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    usage = "%prog [options] [HOSTPATTERN]"
+    parseConfig(config_file)
+
+    global p
+    p = optparse.OptionParser (usage = usage,
+        description = "query puppetdb for facts from matching hosts")
+    p.add_option ('--debug', dest='debug', action='store_true', default=False)
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--facts_url_base', dest='facts_url_base',
+        default=config['facts_url_base'],
+        help="relative URL to puppetdb for default facts query")
+    p.add_option ('--resources_base', dest='resources_url_base',
+        default='/v3/resources',
+        help="relative URL to puppetdb for default resources query")
+
+    global opt
+    opt, args = p.parse_args()
+
+    kernels = hostKernel()
+    uptimes = hostUptime()
+
+    for host in sorted (kernels.keys()):
+        item = []
+        h = re.split('\.', host)[0]
+        k = kernels[host]
+        u = float(uptimes[host]) / 60 / 60 / 24
+
+        print "%-25s  %-30s  %-15s" % (h, k, "%02.1f days" % u)
+
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-report-uptime - report on puppetdb host's uptime/kernel
+
+=head1 SYNOPSYS
+
+B<puppetdb-report-uptime>
+
+=head1 USAGE
+
+puppetdb-report-uptime generates a printable and sortable report that
+shows:
+
+=over 2
+
+=item 0. (hostname)
+
+=item 1. The currently running kernel
+
+=item 2. How many days has the system been up?
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 COPYRIGHT
+
+Copyright 2015, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""
