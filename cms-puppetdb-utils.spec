@@ -1,7 +1,7 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
-Version:        2
-Release:        3
+Version:        2.1.0
+Release:        0
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,6 +56,14 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Fri Feb 27 2015   Tim Skirvin <tskirvin@fnal.gov>  2.1.0-1
+- changed to better versioning scheme
+- puppetdb-tangled, puppetdb-tooquiet, and puppetdb-failed have a
+  consistent output scheme ('%-25s' for host width, etc)
+
+* Thu Feb  5 2015   Tim Skirvin <tskirvin@fnal.gov>  2-4
+- puppetdb-report-uptime - new script that reports on uptimes/kernels
+
 * Mon Oct 20 2014   Tim Skirvin <tskirvin@fnal.gov>  2-3
 - puppetdb-manager - lists hosts with associated primaries/secondaries
 - puppetdb-failed - now prints system role along with the hostname

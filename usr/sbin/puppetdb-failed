@@ -179,7 +179,7 @@ def main():
         for i in sorted(items): 
             if i in roles: role = roles[i]
             else:          role = 'unknown'
-            print "%-30s  %20s" % (i, role)
+            print "%-25s %23s %28s" % (i, '', role)
 
     sys.exit(0)
 

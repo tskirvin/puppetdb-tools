@@ -95,7 +95,7 @@ def hostTangled(hostname, hours):
         text = []
         for i in items:
             if items[i] > 1:
-                text.append("%s: %s (%d)" % (hostname, i, items[i]))
+                text.append("%-25s %s (%d)" % (hostname, i, items[i]))
 
         return text
 

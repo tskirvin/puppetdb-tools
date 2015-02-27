@@ -7,7 +7,7 @@
 config_file = '/etc/puppetdb/puppetdb.json'
 
 hours = 24
-output_string = "%-30s %25s %23s"
+output_string = "%-25s %23s %28s"
 
 #########################################################################
 ### Declarations ########################################################
