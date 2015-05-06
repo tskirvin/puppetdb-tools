@@ -1,0 +1,246 @@
+#!/usr/bin/python
+"""
+Queries the puppetdb 'resources' endpoint to list matching resources of a
+given class ('File', 'Firewall').
+"""
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+config_file = '/etc/puppetdb/puppetdb.json'
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+import json, optparse, re, requests, sys
+
+#########################################################################
+### JSON Parsing Subroutines ############################################
+#########################################################################
+
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
+def parseInputJson(file):
+    """
+    Load an external json file and return the contents.  Exits with an
+    error message if we can't load/the json doesn't parse.
+    """
+    try:
+        with open(file) as json_data:
+            data = json.load(json_data)
+        json_data.close()
+    except Exception, e:
+        print "could not read %s: %s" % (file, e)
+        sys.exit(-1)
+
+    return data
+
+#########################################################################
+### PuppetDB Query Subroutines ##########################################
+#########################################################################
+
+def queryResourcesPuppetDb(type, data):
+    """
+    Query the puppetdb resources endpoint.  Type 'type' is required, and
+    should have the first letter upper-case (matching the puppet internals).
+    Hash data can have:
+    
+       hostname     Only match on this hostname.  Can include wildcards.
+       match        Only match if the title of the resource matches this
+                    regex. 
+
+    Returns an array of matching json entries.
+    """
+
+    fields = []
+    fields.append ("['=', 'type', '%s']" % type)
+    if data['hostname']:
+        fields.append ("['~', 'certname', '^%s$' ]" % data['hostname'])
+    if data['match']:
+        fields.append ("['~', 'title', '^%s$' ]" % data['match'])
+    query = "['and', %s]" % (', '.join(fields))
+    if opt.debug: print "query: %s" % query
+
+    try:
+        payload = { 'query': json.dumps(eval(query)) }
+    except SyntaxError:
+        print 'Malformed query: %s' % query
+        return {}
+
+    headers = {'Accept': 'application/json'}
+    try:
+        resources_url = "%s%s" % ( opt.server, opt.url_base )
+        if opt.debug: print "url: %s" % resources_url
+        r = requests.get(resources_url, headers=headers, params=payload, verify=False)
+    except Exception, e:
+        print '%s (bad json?: %s)' % (e, payload)
+        raise e
+
+    if len(r.json()) == 0:
+        return []
+
+    nodes = []
+    for node in r.json():
+        nodes.append(node)
+
+    return nodes
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    usage = "%prog [options] Class"
+    parseConfig(config_file)
+
+    p = optparse.OptionParser (usage = usage,
+        description = "query puppetdb resources endpoint")
+    p.add_option ('--debug', dest='debug', action='store_true',
+        default=False)
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--url_base', dest='url_base',
+        default=config['resources_url_base'],
+        help="relative URL to puppetdb for default resources query")
+    p.add_option ('--hostname', dest='hostname',
+        default=None,
+        help="hostname to query (default: all hosts)")
+    p.add_option ('--match', dest='match',
+        default=None,
+        help="resource title to match (default: None)")
+
+    global opt
+    opt, args = p.parse_args()
+
+    if len(args) < 1: 
+        p.print_help()
+        exit (-1)
+
+    classname = args[0]
+    
+    try:
+        nodes = queryResourcesPuppetDb(classname, { 'match': opt.match, 'hostname': opt.hostname})
+        if not nodes:
+            print "no matches"
+        for i in nodes:
+            print json.dumps(i, sort_keys=True, indent=4)
+    except Exception, e:
+        print "error: %s" % e
+        sys.exit(-1)
+
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-resources - query puppetdb by resource
+
+=head1 SYNOPSYS
+
+B<puppetdb-resources> Firewall
+
+B<puppetdb-resources> Class --match Mysql::Server
+
+B<puppetdb-resources> User --match tskirvin --hostname 'cms.\*'
+
+=head1 USAGE
+
+puppetdb-resources queries the central puppetdb resources type.  This can
+be used to find, for instance, which hosts have a certain class deployed,
+or which servers are managing a specific user.
+
+Output is JSON.
+
+=head1 OPTIONS
+
+=over 4
+
+=item I<CLASS>
+
+Which resource class are we querying?  Required.  Note that this must
+match the standard puppet internal naming scheme, so you will search for
+(e.g.) 'File' instead of 'file' and 'Foo::Bar' instead of "foo::bar".
+
+=item --debug
+
+Prints debugging information on STDOUT as we run.
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=item --hostname I<HOSTNAME>
+
+Only match on the given I<HOSTNAME>, instead of all hosts.  This can
+include wild cards.
+
+=item --match I<MATCH>
+
+Only match if the resource title matches I<MATCH>.  This can include wild
+cards.
+
+=item --server I<URL>
+
+What server are we querying?  Set in the main json configuration file.
+An example value would be F<http://puppetdb:8080>.
+
+=item --url_base I<URL_BASE>
+
+Defines the query base relative to the main server URL.  Set in the main
+json configuration, defaults to F</v3/resources>.
+
+=back
+
+=head1 EXAMPLE
+
+    puppetdb-resources Class --match Mysql::Server
+
+If you're just looking for matching hostnames:
+
+    puppetdb-resources Class --match Mysql::Server | grep certname
+
+=head1 TODO
+
+Add support to query by parameters as well.
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 COPYRIGHT
+
+Copyright 2015, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""
