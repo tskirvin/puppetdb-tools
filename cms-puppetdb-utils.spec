@@ -1,6 +1,6 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
-Version:        2.3.0
+Version:        2.4.0
 Release:        0
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
@@ -56,6 +56,10 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Mon Jun 22 2015   Tim Skirvin <tskirvin@fnal.gov>  2.4.0-0
+- added puppetdb-monitor
+- fixes to documentation for puppetdb-manager
+
 * Wed May  6 2015   Tim Skirvin <tskirvin@fnal.gov>  2.3.0-0
 - added puppetdb-resources
 

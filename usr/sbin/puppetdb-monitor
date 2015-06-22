@@ -44,6 +44,7 @@ def hostFact(fact):
     query = "['=', 'name', '%s']" % fact
     try:
         payload = { 'query': json.dumps(eval(query))}
+        if opt.debug: print payload
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
@@ -65,10 +66,9 @@ def hostFact(fact):
 
     return hash 
 
-def hostManager():   return hostFact('manager')
-def hostPrimary():   return hostFact('primary')
-def hostRole():      return hostFact('role')
-def hostSecondary(): return hostFact('secondary')
+def hostCmkRole():       return hostFact('checkmk_role')
+def hostCmkInstance():   return hostFact('checkmk_instance')
+def hostCmkMonitored():  return hostFact('checkmk_is_monitored')
 
 #########################################################################
 ### main () #############################################################
@@ -94,26 +94,26 @@ def main():
     global opt
     opt, args = p.parse_args()
 
-    roles = hostRole()
-    primary = hostPrimary()
-    secondary = hostSecondary()
+    cmkroles = hostCmkRole()
+    instance = hostCmkInstance()
+    is_monitored = hostCmkMonitored()
 
-    print "%-23s %23s %15s %15s" % ('Host', 'Role', 'Primary', 'Secondary')
+    print "%-23s %23s %15s %15s" % ('host', 'checkmk_role', 'checkmk_instance', 'monitored?')
     print
 
-    for host in sorted (roles.keys()):
+    for host in sorted (cmkroles.keys()):
         item = []
         item.append (re.split('\.', host)[0])
-        item.append (roles[host])
+        item.append (cmkroles[host])
 
         p = [ 'unknown' ]
-        if primary.has_key(host): 
-            p = primary[host].split(',')
+        if instance.has_key(host): 
+            p = instance[host].split(',')
         item.append(' '.join(p))
 
         s = [ 'unknown' ]
-        if secondary.has_key(host): 
-            s = secondary[host].split(',')
+        if is_monitored.has_key(host): 
+            s = is_monitored[host].split(',')
         item.append(' '.join(s))
   
         print "%-23s %23s %15s %15s" % (item[0], item[1], item[2], item[3])
@@ -132,16 +132,17 @@ if __name__ == '__main__':
 
 =head1 NAME
 
-puppetdb-manager - list all hosts with their managers
+puppetdb-monitor - list all hosts with their monitoring information
 
 =head1 SYNOPSYS
 
-B<puppetdb-manager>
+B<puppetdb-monitor>
 
 =head1 USAGE
 
-puppetdb-manager queries the puppetdb to find out system roles,
-primaries, and secondaries, and prints the whole thing to STDOUT.
+puppetdb-monitor queries the puppetdb to find out checkmk_role,
+checkmk_instance, and checmk_is_monitored statuses, and prints the whole
+thing to STDOUT.
 
 =head1 OPTIONS
 
@@ -159,7 +160,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2014, Fermi National Accelerator Laboratory
+Copyright 2015, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
