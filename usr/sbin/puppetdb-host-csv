@@ -72,11 +72,13 @@ def hostSecondary(): return hostFact('secondary')
 
 def hostBackup():
     """
+    Looks for hosts with a non-zero value of the 'tibs' fact.  These hosts
+    are supposed to be backed up.
     """
 
     query = "['and', %s, %s]" % (
-        ['=', 'type', 'Class'],
-        ['=', 'title', 'Backup::Tibs'],
+        ['=', 'name', 'tibs'],
+        ['~', 'value', '.+'],
     )
     try:
         payload = { 'query': json.dumps(eval(query))}
@@ -85,7 +87,7 @@ def hostBackup():
 
     headers = {'Accept': 'application/json'}
     try:
-        url = "%s%s" % ( opt.server, opt.resources_url_base )
+        url = "%s%s" % ( opt.server, opt.facts_url_base )
         r = requests.get(url, headers=headers, params=payload, verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
