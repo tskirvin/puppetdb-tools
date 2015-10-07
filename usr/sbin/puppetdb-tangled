@@ -13,7 +13,7 @@ hours = 4
 
 from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
-import json, optparse, requests, sys
+import json, optparse, re, requests, sys
 
 #########################################################################
 ### Subroutines #########################################################
@@ -36,6 +36,18 @@ def parseConfig(file):
         sys.exit (2)
 
     return config
+
+def requestCert(url):
+    """
+    If the URL is https, then we will need to pass config['cert'] and
+    config['key'].
+    """
+    if re.match('^https:', url):
+        r = (config['cert'], config['key'])
+    else:
+        r = ()
+
+    return r
 
 def time_from_timestamp(timestamp):
     """
@@ -84,7 +96,8 @@ def hostTangled(hostname, hours):
     headers = {'Accept': 'application/json'}
     try:
         url = "%s%s" % ( opt.server, opt.events_url_base )
-        r = requests.get(url, headers=headers, params=payload)
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
         items = {}
         for event in r.json():
             string = changeString(event, True)
@@ -178,7 +191,8 @@ def main():
     headers = {'Accept': 'application/json'}
     try:
         url = "%s%s" % ( opt.server, opt.event_counts_url_base )
-        r = requests.get(url, headers=headers, params=payload)
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
         text = []
         for node in r.json():
             if 'subject' in node:
@@ -253,7 +267,7 @@ need to escape wild cards if you're using this from the CLI.
 =item --hours I<HOURS>
 
 How many hours back will we check to see if the host is tangled?  Defaults
-to 4 (which is currently 8 reports); you can't go further back than 168.
+to 4 (which is 8 reports); you can't go further back than 168.
 
 =item --help
 
@@ -269,7 +283,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2014, Fermi National Accelerator Laboratory
+Copyright 2014-2015, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify it
 under the same terms as Perl itself.
