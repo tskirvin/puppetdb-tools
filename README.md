@@ -15,6 +15,13 @@ just want to
 
 ## Scripts
 
+This is not an exhaustive list.
+
+### puppetdb-failed
+
+puppetdb-failed queries the puppetdb to find out which hosts failed on
+their last puppet check-in.  
+
 ### puppetdb-node-events
 
 Lists events that have affected a given node over the last 48 hours
@@ -31,6 +38,15 @@ let you find, say, uptime across a large swath of hosts, or similar.
 Lists resources deployed on a node or set of nodes.  This is very
 powerful, and the CLI is probably not good enough for what you'd actually
 want to do with the package.
+
+### puppetdb-tangled
+
+puppetdb-tangled queries the puppetdb to find hosts which are "tangled",
+and reports on the associated hosts/events on STDOUT.  A "tangled" host
+is defined as one where an event is occurring on that host and over and
+over again over the last several runs, which probably indicates that a
+change is not successful.  For instance, Package['foo'] removes
+Package['bar'] and then Package['bar'] is installed afterwards.
 
 ### puppetdb-tooquiet
 
