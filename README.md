@@ -1,13 +1,15 @@
 # cms-puppetdb-utils
 
-This package provides some basic tools to query a puppetdb via a CLI.  The
-tools are currently hard-coded to talk to my local puppetdb, but should be
-fairly trivially customizable to point at a server of your choice.
+This package provides some basic tools to query a puppetdb via a CLI.
+Most of the scripts use a centrally-installed json file, but some are
+still hard-coded to talk to my local puppetdb.  In both cases, it should
+be fairly simple to point at a server of your choice.
 
 These tools were written to be *less* general than any existing tools I've
 seen out there.  Specifically, I don't want to write the necessary JSON
-input at the command-line every time I'm trying to do a basic query; I
-just want to 
+input at the command-line every time I'm trying to do a basic query.
+
+These scripts currently only work with the v3 PuppetDB API.  
 
 ## What is puppetdb?
 
@@ -52,3 +54,37 @@ Package['bar'] and then Package['bar'] is installed afterwards.
 
 Lists nodes that have not checked into the server for the last 48 hours
 (configurable).  Suitable for sending as an email to your team.
+
+-------------------------------------------------------------------------------
+
+## Config Files
+
+### /etc/puppetdb/puppetdb.json
+
+This should work for talking to an https port, where auth requires your own puppet cert (which will only work as root):
+
+    {
+        "ca": "/etc/puppetlabs/puppet/ssl/certs/ca.pem",
+        "cert": "/etc/puppetlabs/puppet/ssl/certs/{fqdn}.fnal.gov.pem",
+        "key": "/etc/puppetlabs/puppet/ssl/private_keys/{fqdn}.fnal.gov.pem",
+        "server": "https://{puppetdb_fqdn}:8081",
+        "nodes_url_base": "/v3/nodes",
+        "events_url_base": "/v3/events",
+        "facts_url_base": "/v3/facts",
+        "reports_url_base": "/v3/reports",
+        "resources_url_base": "/v3/resources",
+        "event_counts_url_base": "/v3/event-counts"
+    }
+
+If you can make queries via http (e.g. without auth):
+
+
+    {
+        "server": "http://{puppetdb_fqdn}:8080",
+        "nodes_url_base": "/v3/nodes",
+        "events_url_base": "/v3/events",
+        "facts_url_base": "/v3/facts",
+        "reports_url_base": "/v3/reports",
+        "resources_url_base": "/v3/resources",
+        "event_counts_url_base": "/v3/event-counts"
+    }
