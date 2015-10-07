@@ -1,6 +1,6 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
-Version:        2.4.1
+Version:        2.5.0
 Release:        0
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
@@ -56,6 +56,12 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Thu Jul 02 2015   Tim Skirvin <tskirvin@fnal.gov>  2.5.0-0
+- puppetdb-failed - added https support
+- puppetdb-tangled - added https support
+- puppetdb-tooquiet - added https support
+- significant documentation improvements
+
 * Thu Jul 02 2015   Tim Skirvin <tskirvin@fnal.gov>  2.4.1-0
 - puppetdb-host-csv - looks for 'tibs' fact instead of 'backup::tibs' class
 
