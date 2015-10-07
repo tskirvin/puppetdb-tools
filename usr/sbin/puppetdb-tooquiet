@@ -39,6 +39,18 @@ def parseConfig(file):
 
     return config
 
+def requestCert(url):
+    """
+    If the URL is https, then we will need to pass config['cert'] and
+    config['key'].
+    """
+    if re.match('^https:', url):
+        r = (config['cert'], config['key'])
+    else:
+        r = ()
+
+    return r
+
 def hostFact(fact):
     """
     Return a hash of name-to-fact values for a given fact.
@@ -52,13 +64,13 @@ def hostFact(fact):
     headers = {'Accept': 'application/json'}
     try:
         url = "%s%s" % ( config['server'], config['facts_url_base'] )
-        r = requests.get(url, headers=headers, params=payload, verify=False)
+        r = requests.get(url, headers=headers, params=payload, 
+            cert=requestCert(url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
-        print "no matches"
-        sys.exit(-1)
+        return {}
 
     hash = {}
     for node in r.json():
@@ -144,7 +156,8 @@ def main():
     headers = {'Accept': 'application/json'}
     try:
         nodes_url = "%s%s" % ( config['server'], config['nodes_url_base'] )
-        r = requests.get(nodes_url, headers=headers, params=payload, verify=False)
+        r = requests.get(nodes_url, headers=headers, params=payload, 
+            cert=requestCert(nodes_url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
@@ -211,9 +224,6 @@ Prints some short help documentation and exits.
 
 =head1 TODO
 
-Make this more configurable, instead of putting the server in the local
-script.
-
 Write a script to send mail based on the contents of this script.
 
 =head1 AUTHOR
@@ -224,7 +234,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2013, Fermi National Accelerator Laboratory
+Copyright 2013-2015, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
