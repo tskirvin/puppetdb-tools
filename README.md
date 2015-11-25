@@ -1,4 +1,4 @@
-# cms-puppetdb-utils
+# ecf-puppetdb-utils
 
 This package provides some basic tools to query a puppetdb via a CLI.
 Most of the scripts use a centrally-installed json file, but some are

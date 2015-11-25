@@ -15,6 +15,11 @@ from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
 import json, optparse, re, requests, sys
 
+## this isn't ideal, but until I actually start verifying the cert this
+## is the best I can do
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 #########################################################################
 ### Subroutines #########################################################
 #########################################################################
@@ -239,7 +244,7 @@ A "tangled" host is defined as one where the most recent report was a
 success in which something changed (an event status changed), and some
 number of these changes have occurred several time in the last several
 runs - that is, something is changing back and forth over and over again,
-or a "success" isn't really a success at all.  
+or a "success" isn't really a success at all.
 
 The list of associated events is printed on STDOUT, in the format:
 

@@ -1,36 +1,36 @@
 ##############################################################################
-### cms-rpmtools Makefile.local ##############################################
+### ecf-rpmtools Makefile.local ##############################################
 ##############################################################################
-## Meant for use with the Makefile from cms-rpmtools.  Assuming the package is 
+## Meant for use with the Makefile from ecf-rpmtools.  Assuming the package is
 ## at the same level, run:
 ##
-##    ln -s ../cms-rpmtools/Makefile .
-##    cp ../cms-rpmtools/Makefile.local .
+##    ln -s /usr/libexec/ecf-rpmtools/Makefile .
+##    cp /usr/libexec/ecf-rpmtools/Makefile.local .
 ##
-## This should give you access to a consistent Makefile.  You're in charge 
+## This should give you access to a consistent Makefile.  You're in charge
 ## of your own *.spec file.
 
 ##############################################################################
 ### Tarball Configuration ####################################################
 ##############################################################################
 
-## We will only rebuild our .tar file if one of these files changes: the 
-## Makefile itself, Makefile.local, the *.spec file, and anything listed in 
+## We will only rebuild our .tar file if one of these files changes: the
+## Makefile itself, Makefile.local, the *.spec file, and anything listed in
 ## $(FILES_LOCAL).
-# FILES_LOCAL = usr etc
 FILES_LOCAL = usr etc
 
-## When creating the local 
+## When creating the tar file, exclude these files
 # TAR_EXCLUDE = --exclude *.bak --exclude .git
-TAR_EXCLUDE = 
+TAR_EXCLUDE =
 
 ##############################################################################
 ### Targets ##################################################################
 ##############################################################################
 ## Set your own targets.  Note that these will appear at the top.
 
-all:  		rpm-6-nosign rpm-sign
-confirm: 	confirm-slf6
+all:		rpm-6-nosign rpm-sign
+confirm:	confirm-slf6
 copy:		copy-slf6
-rpm-sign: 	sign-slf6
-test: 		rpm-6-nosign
+rpm-sign:	sign-slf6
+test:		rpm-6-nosign
+deploy:		deploy-6

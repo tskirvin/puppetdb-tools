@@ -1,5 +1,5 @@
 {
-    "server": "http://cmspuppetdb1.fnal.gov:8080",
+    "server": "https://ssi-puppetdb.fnal.gov:8081",
     "nodes_url_base": "/v3/nodes",
     "events_url_base": "/v3/events",
     "facts_url_base": "/v3/facts",
