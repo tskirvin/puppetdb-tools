@@ -124,7 +124,8 @@ def changeString(event, skip):
 
         Service[ipmi]: stopped -> running (success)
 
-    Events with the status 'skipped' are skipped if the skip flag is set.
+    Events with the status 'skipped' or 'noop' are skipped if the skip 
+    flag is set.
     """
 
     new = event['new-value']
@@ -134,6 +135,9 @@ def changeString(event, skip):
     status = event['status']
 
     if skip and status == 'skipped':
+        return None
+
+    if skip and status == 'noop':
         return None
 
     string = "%s[%s]: %s -> %s (%s)" % (type, title, old, new, status)
@@ -253,7 +257,7 @@ success/failure, and the count of the number of times this event appeared
 in the matching time period.  Only events that have occurred multiple
 times will be listed.
 
-Events of the type 'skipped' are skipped.
+Events of the type 'skipped' or 'noop' are skipped.
 
 =head1 OPTIONS
 
