@@ -4,9 +4,7 @@
 ### Configuration #######################################################
 #########################################################################
 
-server = 'http://cmspuppetdb1.fnal.gov:8080'
-nodes_url     = '%s/v2/nodes' % server
-resources_url = '%s/v2/resources' % server
+config_file = '/etc/puppetdb/puppetdb.json'
 
 output_string = "%-25s %s: %s"
 
@@ -22,10 +20,29 @@ import json, optparse, requests, sys
 ### Subroutines #########################################################
 #########################################################################
 
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
 def node_resources(node, type, title):
     """
     """
 
+    nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
     url = "%s/%s/resources" % (nodes_url, node)
     if type is not None:
         url = "%s/%s" % (url, type)
@@ -42,7 +59,7 @@ def node_resources(node, type, title):
     resources = []
     for resource in r.json():
         resources.append(resource)
-    
+
     return resources
 
 #########################################################################
@@ -51,12 +68,21 @@ def node_resources(node, type, title):
 
 def main():
     usage = "%prog [options] [HOSTPATTERN [TYPE [TITLE]]"
+    parseConfig(config_file)
+
+    global p
     p = optparse.OptionParser (usage = usage,
         description = "query puppetdb for resources from matching hosts")
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--nodes_url_base', dest='nodes_url_base',
+        default=config['nodes_url_base'],
+        help="relative URL to puppetdb for default node query")
 
+    global opt
     opt, args = p.parse_args()
 
-    if len(args) < 1: 
+    if len(args) < 1:
         p.print_help()
         sys.exit(-1)
     else:             host_search = args[0]
@@ -75,6 +101,7 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
+        nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
         r = requests.get(nodes_url, headers=headers, params=payload, verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
@@ -133,7 +160,7 @@ B<puppetdb-node-resources> cmssrv167.fnal.gov Package stunnel
 puppetdb-node-resources queries the puppetdb to find resources on matching
 hosts.  The resource information is printed to stdout.
 
-If there are no matching entries for that host, 
+If there are no matching entries for that host,
 
 =head1 OPTIONS
 
@@ -184,7 +211,7 @@ Prints some short help documentation and exits.
 Make this more configurable, instead of putting the server in the local
 script.
 
-It would be nice to have a better 'pretty-print' option.  
+It would be nice to have a better 'pretty-print' option.
 
 It may, perhaps, be good to have searches based on resources instead of
 hostname.
