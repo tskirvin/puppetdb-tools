@@ -4,9 +4,7 @@
 ### Configuration #######################################################
 #########################################################################
 
-server = 'http://cmspuppetdb1.fnal.gov:8080'
-nodes_url = '%s/v2/nodes' % server
-facts_url = '%s/v2/facts' % server
+config_file = '/etc/puppetdb/puppetdb.json'
 
 output_string = "%-25s %s: %s"
 
@@ -22,10 +20,29 @@ import json, optparse, requests, sys
 ### Subroutines #########################################################
 #########################################################################
 
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
 def node_facts(node):
     """
     """
 
+    nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
     url = "%s/%s/facts" % (nodes_url, node)
     headers = { 'Accept': 'application/json' }
 
@@ -39,7 +56,7 @@ def node_facts(node):
     for fact in r.json():
         name = fact['name']
         facts[name] = fact['value']
-    
+
     return facts
 
 #########################################################################
@@ -48,9 +65,18 @@ def node_facts(node):
 
 def main():
     usage = "%prog [options] [HOSTPATTERN]"
+    parseConfig(config_file)
+
+    global p
     p = optparse.OptionParser (usage = usage,
         description = "query puppetdb for facts from matching hosts")
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--nodes_url_base', dest='nodes_url_base',
+        default=config['nodes_url_base'],
+        help="relative URL to puppetdb for default node query")
 
+    global opt
     opt, args = p.parse_args()
 
     if len(args) < 1: host_search = '.*'
@@ -64,6 +90,7 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
+        nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
         r = requests.get(nodes_url, headers=headers, params=payload, verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
