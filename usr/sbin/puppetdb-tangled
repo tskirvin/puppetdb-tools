@@ -141,6 +141,9 @@ def changeString(event, skip):
     if skip and status == 'skipped':
         return None
 
+    if status and status == 'noop':
+        return None
+
     string = "%s[%s]: %s -> %s (%s)" % (type, title, old, new, status)
     return string
 
@@ -258,7 +261,7 @@ success/failure, and the count of the number of times this event appeared
 in the matching time period.  Only events that have occurred multiple
 times will be listed.
 
-Events of the type 'skipped' are skipped.
+Events of the type 'skipped' or 'noop' are skipped.
 
 =head1 OPTIONS
 

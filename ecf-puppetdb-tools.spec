@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        1.0.0
+Version:        1.0.3
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -12,7 +12,7 @@ BuildRequires:  rsync
 Vendor:         Fermi USCMS-T1
 License:        BSD
 Distribution:   ECF-SSI
-URL:            https://github.com/tskirvin/ecf-puppetdb-utils
+URL:            https://github.com/tskirvin/ecf-puppetdb-tools
 
 %description
 ECF-SSI @ FNAL - scripts for querying the puppetdb
@@ -55,5 +55,17 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
-* Thu Jul 02 2015   Tim Skirvin <tskirvin@fnal.gov>  1.0.0-0
+* Wed Jan 20 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.3-0
+- puppetdb-tooquiet - customizable role fact
+- puppetdb-failed - customizable role fact
+- added puppetdb-failed-list
+
+* Wed Dec 23 2015   Tim Skirvin <tskirvin@fnal.gov>  1.0.2-0
+- puppetdb-tangled - now skips 'noop'
+
+* Thu Dec 03 2015   Tim Skirvin <tskirvin@fnal.gov>  1.0.1-0
+- added puppetdb-failed
+- removed 'role' bits from puppetdb-failed and puppetdb-tooquiet
+
+* Thu Nov 25 2015   Tim Skirvin <tskirvin@fnal.gov>  1.0.0-0
 - initial version (forked from from cms-puppetdb-utils)

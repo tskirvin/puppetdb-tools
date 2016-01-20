@@ -120,13 +120,12 @@ puppetdb-hosts - list hosts in the puppetdb
 
 B<puppetdb-hosts>
 
-B<puppetdb-hosts> cmssrv.\*.fnal.gov
+B<puppetdb-hosts> cms.\*.fnal.gov
 
 =head1 USAGE
 
-puppetdb-hosts queries the puppetdb to find out which hosts hosts on
-their last puppet check-in.  The list is printed on STDOUT.  The final
-field corresponds to the system fact I<role>, if any.
+puppetdb-hosts queries the puppetdb to find a list of hosts, and prints it
+to STDOUT.
 
 =head1 OPTIONS
 

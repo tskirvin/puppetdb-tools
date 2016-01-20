@@ -7,7 +7,7 @@
 config_file = '/etc/puppetdb/puppetdb.json'
 
 hours = 24
-output_string = "%-25s %23s %28s"
+output_string = "%-30s %23s %23s"
 
 #########################################################################
 ### Declarations ########################################################
@@ -69,7 +69,7 @@ def hostFact(fact):
     headers = {'Accept': 'application/json'}
     try:
         url = "%s%s" % ( config['server'], config['facts_url_base'] )
-        r = requests.get(url, headers=headers, params=payload, 
+        r = requests.get(url, headers=headers, params=payload,
             cert=requestCert(url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
@@ -112,7 +112,7 @@ def node_print(node):
     ts = time_from_timestamp(node['report_timestamp'])
     if ts is False: ts_string = "**no puppetdb records**"
     else:           ts_string = ts.strftime("%Y-%m-%d %H:%M:%S %Z")
-    
+
     if name in roles: role = roles[name]
     else:             role = 'unknown'
 
@@ -161,13 +161,18 @@ def main():
     headers = {'Accept': 'application/json'}
     try:
         nodes_url = "%s%s" % ( config['server'], config['nodes_url_base'] )
-        r = requests.get(nodes_url, headers=headers, params=payload, 
+        r = requests.get(nodes_url, headers=headers, params=payload,
             cert=requestCert(nodes_url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
+    if 'role_fact' in config:
+        role_fact = config['role_fact']
+    else:
+        role_fact = 'role'
+
     global roles
-    roles = hostFact('role')
+    roles = hostFact(role_fact)
 
     items = []
     for node in r.json():

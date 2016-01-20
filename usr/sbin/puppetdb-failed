@@ -189,8 +189,14 @@ def main():
     except:
         p.error ('bad json?: %s' % payload)
 
+
+    if 'role_fact' in config:
+        role_fact = config['role_fact']
+    else:
+        role_fact = 'role'
+
     global roles
-    roles = hostFact('role')
+    roles = hostFact(role_fact)
 
     if len(items) > 0:
         for i in sorted(items): 
@@ -223,8 +229,7 @@ B<puppetdb-failed> cmssrv.\*.fnal.gov
 =head1 USAGE
 
 puppetdb-failed queries the puppetdb to find out which hosts failed on
-their last puppet check-in.  The list is printed on STDOUT.  The final
-field corresponds to the system fact I<role>, if any.
+their last puppet check-in.  The list is printed on STDOUT.
 
 =head1 OPTIONS
 
