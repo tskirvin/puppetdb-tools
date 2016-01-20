@@ -4,10 +4,7 @@
 ### Configuration #######################################################
 #########################################################################
 
-server = 'http://cmspuppetdb1.fnal.gov:8080'
-nodes_url = '%s/v2/nodes' % server
-facts_url = '%s/v2/facts' % server
-report_url = '%s/v3/events' % server
+config_file = '/etc/puppetdb/puppetdb.json'
 
 output_string = "%-25s %s: %s"
 
@@ -24,6 +21,24 @@ import json, optparse, requests, sys
 #########################################################################
 ### Subroutines #########################################################
 #########################################################################
+
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
 
 def timestamp_from_time(time):
     """
@@ -54,15 +69,24 @@ def hours_ago(hours):
 
 def main():
     usage = "%prog [options] [HOSTPATTERN]"
+    parseConfig(config_file)
+
+    global p
     p = optparse.OptionParser (usage = usage,
         description = "query puppetdb for facts from matching hosts")
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--events_url_base', dest='events_url_base',
+        default=config['events_url_base'],
+        help="relative URL to puppetdb for default node query")
     p.add_option ('--debug', dest='debug', action='store_true')
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours of reports?  default: %default')
 
+    global opt
     opt, args = p.parse_args()
 
-    if len(args) < 1: 
+    if len(args) < 1:
         p.print_help()
         sys.exit(-1)
     else:
@@ -82,7 +106,8 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
-        r = requests.get(report_url, headers=headers, params=payload, verify=False)
+        events_url = "%s%s" % (opt.server, opt.events_url_base)
+        r = requests.get(events_url, headers=headers, params=payload, verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
@@ -102,7 +127,7 @@ def main():
             status = node['status']
             ts = time_from_timestamp(node['timestamp'])
 
-            
+
             string = "%s  %s[%s]: %s -> %s (%s)" % (ts, type, title, old, new, status)
             output.append(string)
             if opt.debug:
@@ -153,7 +178,7 @@ that have occurred on the given host.
 =item I<HOSTPATTERN>
 
 Default host pattern to match.  No default; you will want to list a single
-fqdn, likely.  
+fqdn, likely.
 
 =item --debug
 
