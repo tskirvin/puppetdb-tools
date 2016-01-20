@@ -24,6 +24,11 @@ This is not an exhaustive list.
 puppetdb-failed queries the puppetdb to find out which hosts failed on
 their last puppet check-in.  
 
+### puppetdb-failed-list
+
+Queries the puppetdb for hosts that had failures in their last run, and
+prints out all of the things failed.
+
 ### puppetdb-node-events
 
 Lists events that have affected a given node over the last 48 hours
