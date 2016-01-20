@@ -1,6 +1,6 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
-Version:        2.5.1
+Version:        2.5.2
 Release:        0
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
@@ -56,6 +56,12 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Wed Jan 20 2016   Tim Skirvin <tskirvin@fnal.gov>  2.5.2-0
+- puppetdb-failed-list - new script, lists reasons for all failures
+- puppetdb-node-* - use the configuration file (thanks Jon Robertson)
+- puppetdb-tangled - makes the 'role' fact printed in the report configurable
+  (thanks Jon Robertson again)
+
 * Wed Dec 23 2015   Tim Skirvin <tskirvin@fnal.gov>  2.5.1-0
 - puppetdb-tangled - skips 'noop' operations as well
 
