@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        1.0.3
+Version:        1.0.4
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -12,7 +12,7 @@ BuildRequires:  rsync
 Vendor:         Fermi USCMS-T1
 License:        BSD
 Distribution:   ECF-SSI
-URL:            https://github.com/tskirvin/ecf-puppetdb-tools
+URL:            https://github.com/tskirvin/cms-puppetdb-tools
 
 %description
 ECF-SSI @ FNAL - scripts for querying the puppetdb
@@ -55,6 +55,11 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Thu Feb  4 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.4-0
+- puppetdb-fact - focused fact queries 
+- puppetdb-node-facts - lists all facts from all nodes
+- puppetdb-wrapper - simple bash wrapper to do curl queries
+
 * Wed Jan 20 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.3-0
 - puppetdb-tooquiet - customizable role fact
 - puppetdb-failed - customizable role fact
