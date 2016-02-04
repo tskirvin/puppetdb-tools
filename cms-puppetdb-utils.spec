@@ -1,6 +1,6 @@
 Name:           cms-puppetdb-utils
 Summary:        Scripts for querying the puppetdb
-Version:        2.5.2
+Version:        2.5.3
 Release:        0
 Packager:       Tim Skirvin <tskirvin@fnal.gov>
 Group:          Applications/System
@@ -56,6 +56,11 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Wed Jan 20 2016   Tim Skirvin <tskirvin@fnal.gov>  2.5.3-0
+- puppetdb-node-facts - now uses config file + https
+- puppetdb-fact - general query interface around the facts endpoint
+- puppetdb-wrapper - bash wrapper around curl to add --key and --cert
+
 * Wed Jan 20 2016   Tim Skirvin <tskirvin@fnal.gov>  2.5.2-0
 - puppetdb-failed-list - new script, lists reasons for all failures
 - puppetdb-node-* - use the configuration file (thanks Jon Robertson)
@@ -95,7 +100,7 @@ fi
 * Mon Oct 20 2014   Tim Skirvin <tskirvin@fnal.gov>  2-3
 - puppetdb-manager - lists hosts with associated primaries/secondaries
 - puppetdb-failed - now prints system role along with the hostname
-- puppetdb-tooquiet - now prints system role along with the hostname 
+- puppetdb-tooquiet - now prints system role along with the hostname
 - puppetdb-tooquiet - now following central json config
 
 * Mon Oct 20 2014   Tim Skirvin <tskirvin@fnal.gov>  2-2

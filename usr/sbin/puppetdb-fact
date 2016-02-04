@@ -6,8 +6,6 @@
 
 config_file = '/etc/puppetdb/puppetdb.json'
 
-output_string = "%-25s %s: %s"
-
 #########################################################################
 ### Declarations ########################################################
 #########################################################################
@@ -43,27 +41,6 @@ def parseConfig(file):
 
     return config
 
-def node_facts(node):
-    """
-    """
-
-    nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
-    url = "%s/%s/facts" % (nodes_url, node)
-    headers = { 'Accept': 'application/json' }
-
-    try:
-        r = requests.get(url, headers=headers, cert=requestCert(url), 
-            verify=False)
-    except Exception, e:
-        raise Exception('%s (bad url?: %s)' % (e, url))
-
-    facts = {}
-    for fact in r.json():
-        name = fact['name']
-        facts[name] = fact['value']
-
-    return facts
-
 def requestCert(url):
     """
     If the URL is https, then we will need to pass config['cert'] and
@@ -86,45 +63,46 @@ def main():
 
     global p
     p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb for facts from matching hosts")
+        description = "query puppetdb for hosts that are tangled")
+    p.add_option ('--debug', dest='debug', action='store_true', default=False)
+    p.add_option ('--json', dest='json', action='store_true', default=False)
     p.add_option ('--server', dest='server', default=config['server'],
         help="puppetdb server (default: %default)")
-    p.add_option ('--debug', dest='debug', action='store_true', default=False)
     p.add_option ('--nodes_url_base', dest='nodes_url_base',
         default=config['nodes_url_base'],
         help="relative URL to puppetdb for default node query")
+    p.add_option ('--facts_url_base', dest='facts_url_base',
+        default=config['facts_url_base'],
+        help="relative URL to puppetdb for facts query")
 
     global opt
     opt, args = p.parse_args()
 
-    if len(args) < 1: host_search = '.*'
-    else:             host_search = args[0]
+    if len(args) < 1:
+        p.print_help()
+        exit (-1)
 
-    query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
-    try:
-        payload = { 'query': json.dumps(eval(query))}
-    except SyntaxError:
-        p.error('Malformed query, check examples for help')
+    if len(args) == 1:
+        url = "%s%s/%s" % (opt.server, opt.facts_url_base, args[0])
+    else:
+        url = "%s%s/%s/%s" % (opt.server, opt.facts_url_base, args[0], args[1])
 
     headers = {'Accept': 'application/json'}
     try:
-        nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
-        r = requests.get(nodes_url, headers=headers, params=payload, 
-            cert=requestCert(nodes_url), verify=False)
-    except Exception, e:
-        p.error('%s (bad json?: %s)' % (e, payload))
+        if opt.debug: print url
+        r = requests.get(url, headers=headers,
+            cert=requestCert(url), verify=False)
+        items = []
+        for node in r.json():
+            if opt.json:
+                print node
+            else:
+                certname = node['certname']
+                value    = node['value']
+                print "%-35s %-42s" % (certname, value)
+    except:
+        p.error ('bad json?: %s' % url)
 
-    if len(r.json()) == 0:
-        print "no matches"
-        sys.exit(-1)
-
-    output = []
-    for node in r.json():
-        name = node['name']
-        facts = node_facts(name)
-        for fact in facts.keys():
-            string = output_string % (name, fact, facts[fact])
-            print string
 
     sys.exit(0)
 
@@ -140,50 +118,52 @@ if __name__ == '__main__':
 
 =head1 NAME
 
-puppetdb-node-facts - list facts on a per-host basis
+puppetdb-fact - query the puppetdb about a given fact
 
 =head1 SYNOPSYS
 
-B<puppetdb-node-facts> cmssrv167.fnal.gov
+B<puppetdb-fact> kernelrelease
 
-B<puppetdb-node-facts> cmssrv'.*'
-
-B<puppetdb-node-facts>
+B<puppetdb-fact> kernelrelease 2.6.32-431.17.1.el6.x86_64
 
 =head1 USAGE
 
-puppetdb-node-facts queries the puppetdb to discover facts about all
-matching hosts.  These facts are printed to stdout.
+puppetdb-fact queries the puppetdb facts endpoint to find the values of
+the given fact on all nodes; additionally, we can filter by a given value
+(no wildcards).
+
+Outputs a list on STDOUT containing the hostname and the fact value.
 
 =head1 OPTIONS
 
 =over 4
 
-=item I<HOSTPATTERN>
+=item I<fact>
 
-Default host pattern to match.  Defaults to '.*'; remember that you may
-need to escape wild cards if you're using this from the CLI.
+Fact name.  Required.  No wildcards allowed.
+
+=item I<value>
+
+Fact value.  Optional; if not offered, we won't restrict the search
+further.
 
 =item --help
 
 Prints some short help documentation and exits.
 
+=item --json
+
+Prints the output as json instead of text.
+
 =back
-
-=head1 TODO
-
-Make this more configurable, instead of putting the server in the local
-script.
 
 =head1 AUTHOR
 
 Tim Skirvin <tskirvin@fnal.gov>
 
-Based in part on https://github.com/JHaals/puppetdb-grep
-
 =head1 COPYRIGHT
 
-Copyright 2013-2016, Fermi National Accelerator Laboratory
+Copyright 2016, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
