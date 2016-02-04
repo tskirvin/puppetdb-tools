@@ -1,0 +1,63 @@
+#!/bin/bash
+# puppetdb-wrapper - wraps a puppetdb call with the appropriate --cert and 
+# --key calls, based on what's in puppetdb.json.
+
+##############################################################################
+### Configuration ############################################################
+##############################################################################
+
+pdb_conf=/etc/puppetdb/puppetdb.json
+
+## Variables
+puppetDB=`cat $pdb_conf | shyaml get-value server`
+puppetDbCert=`cat $pdb_conf | shyaml get-value cert`
+puppetDbKey=`cat $pdb_conf | shyaml get-value key`
+
+exec /usr/bin/curl -s -k -H 'Accept: application/json' \
+    --cert $puppetDbCert --key $puppetDbKey -X GET $@
+
+###############################################################################
+### Documentation #############################################################
+###############################################################################
+
+# Documentation.  Use a hack to hide this from the shell.  Because of the
+# above exit line, this should never be executed.
+DOCS=<<__END_OF_DOCS__
+
+=head1 NAME
+
+puppetdb-wrapper - wraps a puppetdb curl call with cert/key opts
+
+=head1 SYNOPSIS
+
+B<puppetdb-wrapper> I<URL>
+
+=head1 DESCRIPTION
+
+puppetdb-wrapper pulls the I<KEY> and I<CERT> parameters from the central 
+F</etc/puppetdb/puppetdb.json> config and wraps a I<curl> call with them.
+
+=head1 PARAMETERS
+
+=over 4
+
+=item I<URL>
+
+The full URL of the request you're requesting.
+
+=back
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 LICENSE
+
+Copyright 2016, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+__END_OF_DOCS__
