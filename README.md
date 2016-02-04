@@ -13,11 +13,16 @@ These scripts currently only work with the v3 PuppetDB API.
 
 ## What is puppetdb?
 
-[http://docs.puppetlabs.com/puppetdb/latest/index.html]
+http://docs.puppetlabs.com/puppetdb/latest/index.html
 
 ## Scripts
 
 This is not an exhaustive list.
+
+### puppetdb-fact
+
+Queries for a given fact, and lists the hosts that have that fact (along
+with the value of the fact).  A specific value can be specified as well.
 
 ### puppetdb-failed
 
@@ -27,7 +32,8 @@ their last puppet check-in.
 ### puppetdb-failed-list
 
 Queries the puppetdb for hosts that had failures in their last run, and
-prints out all of the things failed.
+prints out all of the things failed.  This is a useful report to send out
+via email to your team.
 
 ### puppetdb-node-events
 
@@ -59,6 +65,11 @@ Package['bar'] and then Package['bar'] is installed afterwards.
 
 Lists nodes that have not checked into the server for the last 48 hours
 (configurable).  Suitable for sending as an email to your team.
+
+### puppetdb-wrapper
+
+Simple bash script to wrap curl with the values of 'key' and 'cert' that
+come out of the central configuration file.  
 
 -------------------------------------------------------------------------------
 
