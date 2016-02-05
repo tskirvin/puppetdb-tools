@@ -12,7 +12,7 @@ BuildRequires:  rsync
 Vendor:         Fermi USCMS-T1
 License:        BSD
 Distribution:   ECF-SSI
-URL:            https://github.com/tskirvin/cms-puppetdb-tools
+URL:            https://github.com/tskirvin/puppetdb-tools
 
 %description
 ECF-SSI @ FNAL - scripts for querying the puppetdb
