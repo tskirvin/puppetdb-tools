@@ -1,4 +1,4 @@
-# cms-puppetdb-utils
+# puppetdb-utils
 
 This package provides some basic tools to query a puppetdb via a CLI.
 Most of the scripts use a centrally-installed json file, but some are
@@ -9,7 +9,7 @@ These tools were written to be *less* general than any existing tools I've
 seen out there.  Specifically, I don't want to write the necessary JSON
 input at the command-line every time I'm trying to do a basic query.
 
-These scripts currently only work with the v3 PuppetDB API.  
+These scripts currently only work with the v3 PuppetDB API.
 
 ## What is puppetdb?
 
@@ -27,7 +27,7 @@ with the value of the fact).  A specific value can be specified as well.
 ### puppetdb-failed
 
 puppetdb-failed queries the puppetdb to find out which hosts failed on
-their last puppet check-in.  
+their last puppet check-in.
 
 ### puppetdb-failed-list
 
@@ -69,7 +69,7 @@ Lists nodes that have not checked into the server for the last 48 hours
 ### puppetdb-wrapper
 
 Simple bash script to wrap curl with the values of 'key' and 'cert' that
-come out of the central configuration file.  
+come out of the central configuration file.
 
 -------------------------------------------------------------------------------
 
