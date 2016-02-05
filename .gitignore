@@ -1,2 +1,4 @@
 .*.sw*
 *.tar.gz
+*.spec
+Makefile
