@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        1.0.4
+Version:        1.0.5
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -55,6 +55,9 @@ fi
 /etc/puppetdb/puppetdb.json
 
 %changelog
+* Tue Mar 22 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.5-0
+- puppetdb-farmlet - looks up hosts by zone/role/subrole
+
 * Thu Feb  4 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.4-0
 - puppetdb-fact - focused fact queries 
 - puppetdb-node-facts - lists all facts from all nodes
