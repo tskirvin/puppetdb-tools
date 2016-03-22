@@ -1,7 +1,7 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
 Version:        1.0.5
-Release:        0%{?dist}
+Release:        1%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0:        %{name}-%{version}-%{release}.tar.gz
@@ -52,9 +52,12 @@ fi
 %defattr(-,root,root)
 /usr/share/man/man8/*
 /usr/sbin/*
-/etc/puppetdb/puppetdb.json
+%config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Tue Mar 22 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.5-1
+- setting puppetdb.json as a config file
+
 * Tue Mar 22 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.5-0
 - puppetdb-farmlet - looks up hosts by zone/role/subrole
 

@@ -35,6 +35,11 @@ Queries the puppetdb for hosts that had failures in their last run, and
 prints out all of the things failed.  This is a useful report to send out
 via email to your team.
 
+### puppetdb-farmlets
+
+Queries the puppetdb for host names, based on zone/role/subrole (our local
+three-level way of looking up hostnames).  
+
 ### puppetdb-node-events
 
 Lists events that have affected a given node over the last 48 hours
