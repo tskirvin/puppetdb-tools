@@ -16,6 +16,11 @@ config_file = '/etc/puppetdb/puppetdb.json'
 
 import json, optparse, re, requests, sys
 
+## this isn't ideal, but until I actually start verifying the cert this
+## is the best I can do
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 #########################################################################
 ### JSON Parsing Subroutines ############################################
 #########################################################################

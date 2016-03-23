@@ -16,6 +16,11 @@ from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
 import json, optparse, requests, sys
 
+## this isn't ideal, but until I actually start verifying the cert this
+## is the best I can do
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 #########################################################################
 ### Subroutines #########################################################
 #########################################################################

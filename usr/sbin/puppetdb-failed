@@ -14,6 +14,11 @@ from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
 import json, optparse, re, requests, sys
 
+## this isn't ideal, but until I actually start verifying the cert this
+## is the best I can do
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 #########################################################################
 ### Subroutines #########################################################
 #########################################################################
@@ -100,9 +105,9 @@ def hostFact(fact):
     return hash
 
 def nodesFailed (host_search, opt, p):
-    """ 
+    """
     Return a list of hosts that failed.
-    """ 
+    """
 
     try:
         host_query = ['~', 'certname', '^%s$' % host_search ]
@@ -122,7 +127,7 @@ def nodesFailed (host_search, opt, p):
     headers = {'Accept': 'application/json'}
     try:
         url = "%s%s" % ( opt.server, opt.event_counts_url_base )
-        r = requests.get(url, headers=headers, params=payload, 
+        r = requests.get(url, headers=headers, params=payload,
             cert=requestCert(url), verify=False)
         items = []
         for node in r.json():
@@ -130,7 +135,7 @@ def nodesFailed (host_search, opt, p):
                 items.append(node['subject']['title'])
         return items
 
-    except Exception, e: 
+    except Exception, e:
         p.error(e)
     except:
         p.error('bad json?: %s' % payload)
@@ -175,7 +180,7 @@ def main():
     headers = {'Accept': 'application/json'}
     try:
         nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
-        r = requests.get(nodes_url, headers=headers, params=payload, 
+        r = requests.get(nodes_url, headers=headers, params=payload,
             cert=requestCert(nodes_url), verify=False)
         items = []
         for node in r.json():
@@ -188,7 +193,7 @@ def main():
     roles = hostFact('role')
 
     if len(items) > 0:
-        for i in sorted(items): 
+        for i in sorted(items):
             if i in roles: role = roles[i]
             else:          role = 'unknown'
             print "%-35s %3s %38s" % (i, '', role)
