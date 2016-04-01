@@ -64,7 +64,7 @@ def main():
 
     global p
     p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb for hosts that are tangled")
+        description = "query puppetdb for hosts by zone/role/subrole")
     p.add_option ('--debug', dest='debug', action='store_true', default=False)
     p.add_option ('--server', dest='server', default=config['server'],
         help="puppetdb server (default: %default)")
