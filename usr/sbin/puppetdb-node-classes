@@ -43,30 +43,6 @@ def parseConfig(file):
 
     return config
 
-def node_resources(node, type, title):
-    """
-    """
-
-    nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
-    url = "%s/%s/resources" % (nodes_url, node)
-    if type is not None:
-        url = "%s/%s" % (url, type)
-    if title is not None:
-        url = "%s/%s" % (url, title)
-    headers = { 'Accept': 'application/json' }
-
-    try:
-        r = requests.get(url, headers=headers, verify=False,
-            cert=requestCert(nodes_url))
-    except Exception, e:
-        raise Exception('%s (bad url?: %s)' % (e, url))
-
-    resources = []
-    for resource in r.json():
-        resources.append(resource)
-
-    return resources
-
 def requestCert(url):
     """
     If the URL is https, then we will need to pass config['cert'] and
@@ -84,18 +60,18 @@ def requestCert(url):
 #########################################################################
 
 def main():
-    usage = "%prog [options] [HOSTPATTERN [TYPE [TITLE]]"
+    usage = "%prog [options] HOSTNAME"
     parseConfig(config_file)
 
     global p
     p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb for resources from matching hosts")
+        description = "query puppetdb for classes on a given host")
     p.add_option ('--server', dest='server', default=config['server'],
         help="puppetdb server (default: %default)")
     p.add_option ('--debug', dest='debug', action='store_true', default=False)
-    p.add_option ('--nodes_url_base', dest='nodes_url_base',
-        default=config['nodes_url_base'],
-        help="relative URL to puppetdb for default node query")
+    p.add_option ('--classes_url_base', dest='resources_url_base',
+        default=config['resources_url_base'],
+        help="relative URL to puppetdb for default resources query")
 
     global opt
     opt, args = p.parse_args()
@@ -103,15 +79,12 @@ def main():
     if len(args) < 1:
         p.print_help()
         sys.exit(-1)
-    else:             host_search = args[0]
+    else:
+        node = args[0]
 
-    if len(args) >= 2: resource_type  = args[1]
-    else:              resource_type  = None
-
-    if len(args) >= 3: resource_title = args[2]
-    else:              resource_title = None
-
-    query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
+    query1 = "['=', 'certname', '%s']" % node
+    query2 = "['=', 'type', 'Class']"
+    query  = "['and', %s, %s]" % (query1, query2)
     try:
         payload = { 'query': json.dumps(eval(query))}
     except SyntaxError:
@@ -121,9 +94,9 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
-        nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
-        r = requests.get(nodes_url, headers=headers, params=payload, 
-            cert=requestCert(nodes_url), verify=False)
+        url = "%s%s" % (opt.server, opt.resources_url_base)
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
@@ -131,26 +104,9 @@ def main():
         print "no matches"
         sys.exit(-1)
 
-    output = []
-    for node in r.json():
-        name = node['name']
-        resources = node_resources(name, resource_type, resource_title)
-        if len(resources) > 0:
-            for i in resources:
-                for key in sorted(i.keys()):
-                    value = i[key]
-                    if isinstance(value, dict):
-                        print "%s:" % key
-                        for j in sorted(value.keys()):
-                            print "    %s: %s" % (j, value[j])
-                    elif isinstance(value, list):
-                        print "%s: %s " % (key, ', '.join(value))
-                    else:
-                        print "%s: %s" % (key, value)
-                print ""
-        else:
-            print "no matching resources for %s" % name
-            print ""
+    for c in r.json():
+        print c['title'].lower()
+        if opt.debug: print c
 
     sys.exit(0)
 
@@ -166,74 +122,34 @@ if __name__ == '__main__':
 
 =head1 NAME
 
-puppetdb-node-resources - list resources on a per-host basis
+puppetdb-node-classes - list classes on a per-host basis
 
 =head1 SYNOPSYS
 
-B<puppetdb-node-resources> cmssrv167.fnal.gov
-
-B<puppetdb-node-resources> cmssrv167.fnal.gov Package
-
-B<puppetdb-node-resources> cmssrv167.fnal.gov Package stunnel
+B<puppetdb-node-classes> cmssrv167.fnal.gov
 
 =head1 USAGE
 
-puppetdb-node-resources queries the puppetdb to find resources on matching
-hosts.  The resource information is printed to stdout.
+puppetdb-node-classes queries the puppetdb to find all classes deployed on
+the given host. The class list is printed to stdout.
 
 =head1 OPTIONS
 
 =over 4
 
-=item I<HOSTPATTERN>
+=item I<HOST>
 
-Default host pattern to match.  Defaults to '.*'; remember that you may
-need to escape wild cards if you're using this from the CLI.
+(Exact) host to query.
 
-=item I<TYPE>
+=item --debug
 
-Resource type to match.  Optional.  A few examples: Package, Class,
-Service, File.
-
-=item I<TITLE>
-
-Title of the resource to match.  Optional.  Some example packages:
-
-=over 4
-
-=item Package
-
-F<pakiti-client>; F<zz_fermi_ssh_config>
-
-=item Class
-
-F<Yum::Autoupdate>; F:Nfs::Client>
-
-=item Service
-
-F<ntpdate>; F<sshd>
-
-=item File
-
-F</var/lib/rsyslog/>; F</etc/ntp.conf>
-
-=back
+Prints debugging information as we go.
 
 =item --help
 
 Prints some short help documentation and exits.
 
 =back
-
-=head1 TODO
-
-Make this more configurable, instead of putting the server in the local
-script.
-
-It would be nice to have a better 'pretty-print' option.
-
-It may, perhaps, be good to have searches based on resources instead of
-hostname.
 
 =head1 AUTHOR
 

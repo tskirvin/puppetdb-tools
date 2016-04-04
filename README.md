@@ -40,6 +40,11 @@ via email to your team.
 Queries the puppetdb for host names, based on zone/role/subrole (our local
 three-level way of looking up hostnames).  
 
+### puppetdb-node-classes
+
+List the classes deployed on a given system.  Should match the per-host
+classes.txt file.
+
 ### puppetdb-node-events
 
 Lists events that have affected a given node over the last 48 hours
