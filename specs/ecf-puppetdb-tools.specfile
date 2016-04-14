@@ -1,7 +1,7 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
 Version:        1.0.6
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0:        %{name}-%{version}-%{release}.tar.gz
@@ -55,6 +55,9 @@ fi
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Thu Apr 14 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.6-2
+- puppetdb-resources ssl fix (when will I get time to fix it globally?)
+
 * Wed Mar 23 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.6-1
 - puppetdb-host-csv ssl fix
 

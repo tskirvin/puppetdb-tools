@@ -58,6 +58,19 @@ def parseInputJson(file):
 
     return data
 
+
+def requestCert(url):
+    """
+    If the URL is https, then we will need to pass config['cert'] and
+    config['key'].
+    """
+    if re.match('^https:', url):
+        r = (config['cert'], config['key'])
+    else:
+        r = ()
+
+    return r
+
 #########################################################################
 ### PuppetDB Query Subroutines ##########################################
 #########################################################################
@@ -94,7 +107,8 @@ def queryResourcesPuppetDb(type, data):
     try:
         resources_url = "%s%s" % ( opt.server, opt.url_base )
         if opt.debug: print "url: %s" % resources_url
-        r = requests.get(resources_url, headers=headers, params=payload, verify=False)
+        r = requests.get(resources_url, headers=headers, params=payload, 
+            cert=requestCert(resources_url), verify=False)
     except Exception, e:
         print '%s (bad json?: %s)' % (e, payload)
         raise e
