@@ -189,8 +189,13 @@ def main():
     except:
         p.error ('bad json?: %s' % payload)
 
+    if 'role_fact' in config:
+        role_fact = config['role_fact']
+    else:
+        role_fact = 'role'
+
     global roles
-    roles = hostFact('role')
+    roles = hostFact(role_fact)
 
     if len(items) > 0:
         for i in sorted(items):
@@ -249,7 +254,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2014-2015, Fermi National Accelerator Laboratory
+Copyright 2014-2016, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
