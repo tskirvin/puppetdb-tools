@@ -71,6 +71,33 @@ def timestamp_from_time(time):
     """
     return time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
+def nodesActive (host_search, opt, p):
+    """
+    """
+
+    query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    items = {}
+
+    headers = {'Accept': 'application/json'}
+    try:
+        nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
+        if opt.debug:
+            print "url: %s" % nodes_url
+            print "payload: %s" % payload
+        r = requests.get(nodes_url, headers=headers, params=payload,
+            cert=requestCert(nodes_url), verify=False)
+        for node in r.json():
+            items[node['name']] = 1
+    except:
+        p.error ('bad json?: %s' % payload)
+
+    return items
+
 def nodesFailed (host_search, opt, p):
     """
     Return a list of hosts that failed.
@@ -195,6 +222,9 @@ def main():
     p.add_option ('--event_counts_url_base', dest='event_counts_url_base',
         default=config['event_counts_url_base'],
         help="relative URL to puppetdb for event counts query")
+    p.add_option ('--nodes_url_base', dest='nodes_url_base',
+        default=config['nodes_url_base'],
+        help="relative URL to puppetdb for node query")
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours of reports?  default: %default')
 
@@ -204,14 +234,17 @@ def main():
     if len(args) < 1: host_search = '.*'
     else:             host_search = args[0]
 
+    active = nodesActive (host_search, opt, p)
+
     try:
         failed = nodesFailed (host_search, opt, p)
         for i in sorted(failed):
-            failures = hostFailedWhy(i)
-            print "Node %s - %d failures" % (i, len(failures))
-            for j in failures:
-                print "  %s" % j
-            print ""
+            if i in active:
+                failures = hostFailedWhy(i)
+                print "Node %s - %d failures" % (i, len(failures))
+                for j in failures:
+                    print "  %s" % j
+                print ""
 
     except Exception, e:
         p.error(e)

@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        1.0.7
+Version:        1.0.8
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -55,6 +55,9 @@ fi
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Tue Apr 26 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.8-0
+- puppetdb-failed-list - only show active nodes
+
 * Thu Apr 14 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.7-0
 - puppetdb-failed - get role_fact from the config files
 
