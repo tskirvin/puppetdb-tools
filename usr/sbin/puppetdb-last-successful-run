@@ -1,0 +1,352 @@
+#!/usr/bin/python
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+config_file = '/etc/puppetdb/puppetdb.json'
+
+hours = 168
+output_string = "%-30s %23s %23s"
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+from datetime import datetime, timedelta
+import dateutil.parser, dateutil.tz
+import json, optparse, re, requests, sys
+
+## this isn't ideal, but until I actually start verifying the cert this
+## is the best I can do
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def parseConfig(file):
+    """
+    Load a json configuration from a configuration file.  Sets a global
+    'config' variable.
+    """
+    global config
+
+    try:
+        config = json.load(open(config_file, 'r'))
+    except IOError, e:
+        print "file error:  %s" % e
+        sys.exit (2)
+    except Exception, e:
+        print "unknown error:  %s" % e
+        sys.exit (2)
+
+    return config
+
+def requestCert(url):
+    """
+    If the URL is https, then we will need to pass config['cert'] and
+    config['key'].
+    """
+    if re.match('^https:', url):
+        r = (config['cert'], config['key'])
+    else:
+        r = ()
+
+    return r
+
+def hostFact(fact):
+    """
+    Return a hash of name-to-fact values for a given fact.
+    """
+    query = "['=', 'name', '%s']" % fact
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( config['server'], config['facts_url_base'] )
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        return {}
+
+    hash = {}
+    for node in r.json():
+        name = node['certname']
+        hash[name] = node['value']
+
+    return hash
+
+def tooOld(timestamp, hours):
+    """
+    Given a timestamp and a number of hours, returns True if the timestamp
+    is > hours old, or False otherwise.
+    """
+    ts = time_from_timestamp(timestamp)
+    if ts is False: return True
+
+    now = datetime.now(dateutil.tz.tzlocal())
+    delta = timedelta(hours=hours)
+
+    diff = now - ts
+    if diff > delta: return True
+    else:            return False
+
+def node_print(node, timestamp):
+    """
+    Create a human-readable string saying how long it's been since a node
+    has checked in.
+    """
+    name = node
+
+    if name in roles: role = roles[name]
+    else:             role = 'unknown'
+
+    if timestamp is False: ts_string = "**no puppetdb records**"
+    else:                  ts_string = timestamp.strftime("%Y-%m-%d %H:%M:%S %Z")
+
+
+    return output_string % (name, ts_string, role)
+
+def nodesFailed (host_search, opt, p):
+    """
+    Return a list of hosts that failed.
+    """
+
+    try:
+        host_query = ['~', 'certname', '^%s$' % host_search ]
+        time_query = "['=', 'latest_report?', 'true']"
+        query = "['and', %s, %s]" \
+            % (host_query, time_query)
+
+        payload = {
+          'query':         json.dumps(eval(query)),
+          'summarize-by':  'certname',
+          'count-by':      'certname',
+          'counts-filter': json.dumps(['>', 'failures', 0 ])
+        }
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.event_counts_url_base )
+        if opt.debug: print "url: %s" % url
+        if opt.debug: print "query: %s" % query
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
+        items = []
+        for node in r.json():
+            if 'subject' in node:
+                items.append(node['subject']['title'])
+        return items
+
+    except Exception, e:
+        p.error(e)
+    except:
+        p.error('bad json?: %s' % payload)
+
+def successByReport (report_id, opt, p):
+    """
+    Queries the puppetdb to pull down an event_counts response.  Returns
+    True if there were no failures, noops, or skips, and False otherwise.
+    """
+
+    try:
+        event_query = ['=', "report", report_id.encode('ascii')]
+        query = "%s" % event_query
+        payload = {
+            'query': json.dumps(eval(query)),
+            'summarize-by': 'certname',
+            'count-by':     'certname',
+        }
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.event_counts_url_base )
+        if opt.debug: print "url: %s" % url
+        if opt.debug: print "query: %s" % query
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
+        for event in r.json():
+            if event['failures'] > 0: return False
+            if event['noops']    > 0: return False
+            if event['skips']    > 0: return False
+        return True
+
+    except Exception, e:
+        p.error(e)
+    except:
+        p.error('bad json?: %s' % payload)
+
+def reportsPerHost (host, opt, p):
+    """
+    Return a hash of puppet reports on a per-host basis.  The keys are the
+    timestamp of the report, the values are the reports themselves (a
+    hash, pulled from the json).  See:
+
+        https://docs.puppet.com/puppetdb/2.3/api/query/v3/reports.html
+
+    """
+    try:
+        host_query = ['=', 'certname', host.encode('ascii')]
+        query = "%s" % host_query
+        payload = { 'query': json.dumps(eval(query)) }
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    try:
+        url = "%s%s" % ( opt.server, opt.reports_url_base )
+        if opt.debug: print "url: %s" % url
+        if opt.debug: print "query: %s" % query
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
+        items = {}
+        for event in r.json():
+            ts = event['receive-time']
+            items[ts] = event
+        return items
+
+    except Exception, e:
+        p.error(e)
+    except:
+        p.error('bad json?: %s' % payload)
+
+
+def time_from_timestamp(timestamp):
+    """
+    Parse a timestamp with dateutil.parser.parse(), and set to the local
+    timezone.  This is still usable for date math.
+    """
+    if timestamp is None:
+        return False
+
+    ts = dateutil.parser.parse(timestamp)
+    local = ts.astimezone(dateutil.tz.tzlocal())
+    return local
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    usage = "%prog [options] [HOSTPATTERN]"
+    parseConfig(config_file)
+
+    global p
+    p = optparse.OptionParser (usage = usage,
+        description = "query puppetdb for ...")
+    p.add_option ('--hours', dest='hours', default=hours, type='int',
+        help='how many hours is "too many"?  default: %default')
+    p.add_option ('--server', dest='server', default=config['server'],
+        help="puppetdb server (default: %default)")
+    p.add_option ('--nodes_url_base', dest='nodes_url_base',
+        default=config['nodes_url_base'],
+        help="relative URL to puppetdb for default node query")
+    p.add_option ('--event_counts_url_base', dest='event_counts_url_base',
+        default=config['event_counts_url_base'],
+        help="relative URL to puppetdb for event counts query")
+    p.add_option ('--reports_url_base', dest='reports_url_base',
+        default=config['reports_url_base'],
+        help="relative URL to puppetdb for reports query")
+
+    p.add_option ('--debug', dest='debug', action='store_true',
+        default=False)
+
+    global opt
+    opt, args = p.parse_args()
+
+    if 'role_fact' in config:
+        role_fact = config['role_fact']
+    else:
+        role_fact = 'role'
+
+    global roles
+    roles = hostFact(role_fact)
+
+    items = []
+    for node in nodesFailed('.*', opt, p):
+        reports = reportsPerHost(node, opt, p)
+        mostRecent = False
+        for i in reversed(sorted(reports.keys())):
+            id = reports[i]['hash']
+            if not tooOld(i, opt.hours):
+                success = successByReport(id, opt, p)
+                if success:
+                    mostRecent = time_from_timestamp(i)
+                    break
+
+        items.append(node_print(node, mostRecent))
+
+    if len(items) > 0:
+        for i in items: print i
+
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-last-successful-run - timestamp of the last-successful-run of failed puppet hosts
+
+=head1 SYNOPSYS
+
+B<puppetdb-last-successful-run>
+
+B<puppetdb-last-successful-run> --hours 48
+
+=head1 USAGE
+
+puppetdb-last-successful-run queries the puppetdb to find out which hosts
+did not succeed on their last puppet run and, for each of those hosts,
+determines when their last successful run *was*.  The list is printed to
+STDOUT.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --hours I<HOURS>
+
+How far back are we willing to look?  Defaults to 168 hours (1 week);
+smaller times will improve script performance.  Note that the puppetdb
+tends to purge reports after 2 weeks.
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 COPYRIGHT
+
+Copyright 2016, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""

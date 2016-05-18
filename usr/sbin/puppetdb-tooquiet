@@ -143,6 +143,8 @@ def main():
         description = "query puppetdb for hosts that are too quiet")
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours is "too many"?  default: %default')
+    p.add_option ('--debug', dest='debug', action='store_true',
+        default=False)
 
     global opt
     opt, args = p.parse_args()
@@ -160,9 +162,12 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
-        nodes_url = "%s%s" % ( config['server'], config['nodes_url_base'] )
-        r = requests.get(nodes_url, headers=headers, params=payload,
-            cert=requestCert(nodes_url), verify=False)
+        url = "%s%s" % ( config['server'], config['nodes_url_base'] )
+        if opt.debug:
+            print "url: %s" % url
+            print "query: %s" % query
+        r = requests.get(url, headers=headers, params=payload,
+            cert=requestCert(url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 

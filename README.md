@@ -40,6 +40,13 @@ via email to your team.
 Queries the puppetdb for host names, based on zone/role/subrole (our local
 three-level way of looking up hostnames).  
 
+### puppetdb-last-successful-run
+
+For each host that failed its last puppet run, find out when it last had
+a successful puppet run.  This can be useful for determining whether a
+machine is really "supported" any more, especially in conjunction with
+puppetdb-tooquiet.
+
 ### puppetdb-node-classes
 
 List the classes deployed on a given system.  Should match the per-host
