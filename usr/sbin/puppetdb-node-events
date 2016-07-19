@@ -16,7 +16,7 @@ hours = 2
 
 from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
-import json, optparse, requests, sys
+import json, optparse, re, requests, sys
 
 ## this isn't ideal, but until I actually start verifying the cert this
 ## is the best I can do
@@ -68,6 +68,18 @@ def hours_ago(hours):
     time = datetime.now(dateutil.tz.tzlocal()) - timedelta(hours=hours)
     return time
 
+def requestCert(url):
+    """
+    If the URL is https, then we will need to pass config['cert'] and
+    config['key'].
+    """
+    if re.match('^https:', url):
+        r = (config['cert'], config['key'])
+    else:
+        r = ()
+
+    return r
+
 #########################################################################
 ### main () #############################################################
 #########################################################################
@@ -78,7 +90,7 @@ def main():
 
     global p
     p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb for facts from matching hosts")
+        description = "query puppetdb for events on matching hosts")
     p.add_option ('--server', dest='server', default=config['server'],
         help="puppetdb server (default: %default)")
     p.add_option ('--events_url_base', dest='events_url_base',
@@ -112,7 +124,8 @@ def main():
     headers = {'Accept': 'application/json'}
     try:
         events_url = "%s%s" % (opt.server, opt.events_url_base)
-        r = requests.get(events_url, headers=headers, params=payload, verify=False)
+        r = requests.get(events_url, headers=headers, params=payload, 
+            cert=requestCert(events_url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
@@ -212,7 +225,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2013, Fermi National Accelerator Laboratory
+Copyright 2013-2016, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.

@@ -245,7 +245,7 @@ def main():
 
     global p
     p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb for ...")
+        description = "query puppetdb for host last successful run")
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours is "too many"?  default: %default')
     p.add_option ('--server', dest='server', default=config['server'],

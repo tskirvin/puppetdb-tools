@@ -58,7 +58,8 @@ def hostFact(fact):
     headers = {'Accept': 'application/json'}
     try:
         url = "%s%s" % ( opt.server, opt.facts_url_base )
-        r = requests.get(url, headers=headers, params=payload, verify=False)
+        r = requests.get(url, headers=headers, params=payload, 
+            cert=requestCert(url), verify=False)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
@@ -81,6 +82,18 @@ def hostFact(fact):
     return hash
 
 def hostUuid():   return hostFact('uuid__*')
+
+def requestCert(url):
+    """
+    If the URL is https, then we will need to pass config['cert'] and
+    config['key'].
+    """
+    if re.match('^https:', url):
+        r = (config['cert'], config['key'])
+    else:
+        r = ()
+
+    return r
 
 #########################################################################
 ### main () #############################################################
