@@ -1,81 +1,27 @@
 #!/usr/bin/python
 
 #########################################################################
-### Configuration #######################################################
-#########################################################################
-
-config_file = '/etc/puppetdb/puppetdb.json'
-
-#########################################################################
 ### Declarations ########################################################
 #########################################################################
 
-from datetime import datetime, timedelta
-import dateutil.parser, dateutil.tz
-import json, optparse, re, requests, sys
-
-## this isn't ideal, but until I actually start verifying the cert this
-## is the best I can do
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import puppetdb, sys
 
 #########################################################################
-### Subroutines #########################################################
+### Configuration #######################################################
 #########################################################################
 
-def parseConfig(file):
-    """
-    Load a json configuration from a configuration file.  Sets a global
-    'config' variable.
-    """
-    global config
-
-    try:
-        config = json.load(open(config_file, 'r'))
-    except IOError, e:
-        print "file error:  %s" % e
-        sys.exit (2)
-    except Exception, e:
-        print "unknown error:  %s" % e
-        sys.exit (2)
-
-    return config
-
-def requestCert(url):
-    """
-    If the URL is https, then we will need to pass config['cert'] and
-    config['key'].
-    """
-    if re.match('^https:', url):
-        r = (config['cert'], config['key'])
-    else:
-        r = ()
-
-    return r
+## Text for --help
+text = "query puppetdb for system fact values"
+usage_text = "usage: %prog [options] fact_name [VALUE]"
 
 #########################################################################
 ### main () #############################################################
 #########################################################################
 
 def main():
-    usage = "%prog [options] [HOSTPATTERN]"
-    parseConfig(config_file)
-
-    global p
-    p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb for system fact values")
-    p.add_option ('--debug', dest='debug', action='store_true', default=False)
-    p.add_option ('--json', dest='json', action='store_true', default=False)
-    p.add_option ('--server', dest='server', default=config['server'],
-        help="puppetdb server (default: %default)")
-    p.add_option ('--nodes_url_base', dest='nodes_url_base',
-        default=config['nodes_url_base'],
-        help="relative URL to puppetdb for default node query")
-    p.add_option ('--facts_url_base', dest='facts_url_base',
-        default=config['facts_url_base'],
-        help="relative URL to puppetdb for facts query")
-
-    global opt
+    p = puppetdb.generateParser(text, usage_text)
+    p.add_option ('--json', dest='json', action='store_true',
+        default=False, help="print json instead of the value")
     opt, args = p.parse_args()
 
     if len(args) < 1:
@@ -89,9 +35,8 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
-        if opt.debug: print url
-        r = requests.get(url, headers=headers,
-            cert=requestCert(url), verify=False)
+        if opt.debug: print "url: %s" % url
+        r = puppetdb.request(url, headers=headers)
         items = []
         for node in r.json():
             if opt.json:
@@ -100,9 +45,8 @@ def main():
                 certname = node['certname']
                 value    = node['value']
                 print "%-35s %-42s" % (certname, value)
-    except:
-        p.error ('bad json?: %s' % url)
-
+    except Exception, e:
+        p.error (e)
 
     sys.exit(0)
 
@@ -133,6 +77,8 @@ the given fact on all nodes; additionally, we can filter by a given value
 (no wildcards).
 
 Outputs a list on STDOUT containing the hostname and the fact value.
+
+Should support both v3 and v4 PuppetDB APIs.
 
 =head1 OPTIONS
 

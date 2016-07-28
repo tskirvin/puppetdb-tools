@@ -1,104 +1,37 @@
 #!/usr/bin/python
 
 #########################################################################
-### Configuration #######################################################
-#########################################################################
-
-config_file = '/etc/puppetdb/puppetdb.json'
-
-#########################################################################
 ### Declarations ########################################################
 #########################################################################
 
-from datetime import datetime, timedelta
-import dateutil.parser, dateutil.tz
-import json, optparse, re, requests, sys
-
-## this isn't ideal, but until I actually start verifying the cert this
-## is the best I can do
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import puppetdb, sys
 
 #########################################################################
-### Subroutines #########################################################
+### Configuration #######################################################
 #########################################################################
 
-def parseConfig(file):
-    """
-    Load a json configuration from a configuration file.  Sets a global
-    'config' variable.
-    """
-    global config
-
-    try:
-        config = json.load(open(config_file, 'r'))
-    except IOError, e:
-        print "file error:  %s" % e
-        sys.exit (2)
-    except Exception, e:
-        print "unknown error:  %s" % e
-        sys.exit (2)
-
-    return config
-
-def requestCert(url):
-    """
-    If the URL is https, then we will need to pass config['cert'] and
-    config['key'].
-    """
-    if re.match('^https:', url):
-        r = (config['cert'], config['key'])
-    else:
-        r = ()
-
-    return r
+## Text for --help
+text = "query puppetdb to list all hosts"
+usage_text = "usage: %prog [options] [HOSTPATTERN]"
 
 #########################################################################
 ### main () #############################################################
 #########################################################################
 
 def main():
-    usage = "%prog [options] [HOSTPATTERN]"
-    parseConfig(config_file)
-
-    global p
-    p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb to list all hosts")
-    p.add_option ('--debug', dest='debug', action='store_true', default=False)
-    p.add_option ('--server', dest='server', default=config['server'],
-        help="puppetdb server (default: %default)")
-    p.add_option ('--nodes_url_base', dest='nodes_url_base',
-        default=config['nodes_url_base'],
-        help="relative URL to puppetdb for default node query")
-    p.add_option ('--event_counts_url_base', dest='event_counts_url_base',
-        default=config['event_counts_url_base'],
-        help="relative URL to puppetdb for event counts query")
-
-    global opt
+    p = puppetdb.generateParser(text, usage_text)
     opt, args = p.parse_args()
 
-    if len(args) < 1:
-        host_search = '.*'
-    else:
-        host_search = args[0]
+    if len(args) < 1:   host_search = '.*'
+    else:               host_search = args[0]
 
     query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
     try:
-        payload = { 'query': json.dumps(eval(query))}
-    except SyntaxError:
-        p.error('Malformed query, check examples for help')
-
-    headers = {'Accept': 'application/json'}
-    try:
-        nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
-        r = requests.get(nodes_url, headers=headers, params=payload,
-            cert=requestCert(nodes_url), verify=False)
-        items = []
-        for node in r.json():
-            print node['name']
-    except:
-        p.error ('bad json?: %s' % payload)
-
+        for node in puppetdb.queryNodes(query, opt):
+            if 'certname' in node: print node['certname']
+            elif 'name' in node:   print node['name']
+    except Exception, e:
+        print "error: %s" % e
 
     sys.exit(0)
 
@@ -125,7 +58,7 @@ B<puppetdb-hosts> cms.\*.fnal.gov
 =head1 USAGE
 
 puppetdb-hosts queries the puppetdb to find a list of hosts, and prints it
-to STDOUT.
+to STDOUT.  Should support both v3 and v4 PuppetDB APIs.
 
 =head1 OPTIONS
 
@@ -148,7 +81,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2015, Fermi National Accelerator Laboratory
+Copyright 2015-2016, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.

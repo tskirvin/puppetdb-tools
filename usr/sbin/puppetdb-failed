@@ -12,7 +12,7 @@ config_file = '/etc/puppetdb/puppetdb.json'
 
 from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
-import json, optparse, re, requests, sys
+import json, optparse, os, re, requests, sys
 
 ## this isn't ideal, but until I actually start verifying the cert this
 ## is the best I can do
@@ -31,7 +31,7 @@ def parseConfig(file):
     global config
 
     try:
-        config = json.load(open(config_file, 'r'))
+        config = json.load(open(file, 'r'))
     except IOError, e:
         print "file error:  %s" % e
         sys.exit (2)
@@ -109,24 +109,33 @@ def nodesFailed (host_search, opt, p):
     Return a list of hosts that failed.
     """
 
+    url = "%s%s" % ( opt.server, opt.event_counts_url_base )
     try:
         host_query = ['~', 'certname', '^%s$' % host_search ]
         time_query = "['=', 'latest_report?', 'true']"
         query = "['and', %s, %s]" \
             % (host_query, time_query)
 
-        payload = {
-          'query':         json.dumps(eval(query)),
-          'summarize-by':  'certname',
-          'count-by':      'certname',
-          'counts-filter': json.dumps(['>', 'failures', 0 ])
+        payload = { 
+            'query':         json.dumps(eval(query)),
+            'summarize_by':  'certname',
+            'count_by':      'certname',
+            'counts_filter': json.dumps(['>', 'failures', 0 ])
         }
+        # support old version of the API
+        if re.match(r".*/v3/.*", url):
+            payload['summarize-by']  = payload.pop('summarize_by')
+            payload['count-by']      = payload.pop('count_by')
+            payload['counts-filter'] = payload.pop('counts_filter')
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     try:
         url = "%s%s" % ( opt.server, opt.event_counts_url_base )
+        if opt.debug: 
+            print "url: %s" % url
+            print "payload: %s" % payload
         r = requests.get(url, headers=headers, params=payload,
             cert=requestCert(url), verify=False)
         items = []
@@ -146,7 +155,7 @@ def nodesFailed (host_search, opt, p):
 
 def main():
     usage = "%prog [options] [HOSTPATTERN]"
-    parseConfig(config_file)
+    parseConfig(os.getenv('PUPPETDB_CONFIG', config_file))
 
     global p
     p = optparse.OptionParser (usage = usage,
@@ -170,6 +179,8 @@ def main():
         host_search = args[0]
 
     failed = nodesFailed (host_search, opt, p)
+    if len(failed) == 0:
+        sys.exit(0)
 
     query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
     try:
@@ -180,19 +191,20 @@ def main():
     headers = {'Accept': 'application/json'}
     try:
         nodes_url = "%s%s" % (opt.server, opt.nodes_url_base)
+        if opt.debug: print "url: %s" % nodes_url
         r = requests.get(nodes_url, headers=headers, params=payload,
             cert=requestCert(nodes_url), verify=False)
         items = []
         for node in r.json():
+            if 'certname' in node: name = node['certname']
+            else:                  name = node['name']
             for i in failed:
-                if i == node['name']: items.append(node['name'])
+                if i == name: items.append(name)
     except:
         p.error ('bad json?: %s' % payload)
 
-    if 'role_fact' in config:
-        role_fact = config['role_fact']
-    else:
-        role_fact = 'role'
+    if 'role_fact' in config: role_fact = config['role_fact']
+    else:                     role_fact = 'role'
 
     global roles
     roles = hostFact(role_fact)

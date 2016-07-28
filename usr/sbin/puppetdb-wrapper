@@ -6,7 +6,7 @@
 ### Configuration ############################################################
 ##############################################################################
 
-pdb_conf=/etc/puppetdb/puppetdb.json
+pdb_conf=${PUPPETDB_CONFIG:=/etc/puppetdb/puppetdb.json}
 
 ## Variables
 puppetDB=`cat $pdb_conf | shyaml get-value server`

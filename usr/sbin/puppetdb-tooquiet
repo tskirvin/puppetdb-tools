@@ -1,88 +1,28 @@
 #!/usr/bin/python
 
 #########################################################################
-### Configuration #######################################################
-#########################################################################
-
-config_file = '/etc/puppetdb/puppetdb.json'
-
-hours = 24
-output_string = "%-30s %23s %23s"
-
-#########################################################################
 ### Declarations ########################################################
 #########################################################################
 
 from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
-import json, optparse, re, requests, sys
 
-## this isn't ideal, but until I actually start verifying the cert this
-## is the best I can do
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import puppetdb, sys
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+hours = 24
+output_string = "%-30s %23s %23s"
+
+## Text for --help
+text = "query puppetdb for hosts that are too quiet"
+usage_text = "usage: %prog [options] [HOSTPATTERN]"
 
 #########################################################################
 ### Subroutines #########################################################
 #########################################################################
-
-def parseConfig(file):
-    """
-    Load a json configuration from a configuration file.  Sets a global
-    'config' variable.
-    """
-    global config
-
-    try:
-        config = json.load(open(config_file, 'r'))
-    except IOError, e:
-        print "file error:  %s" % e
-        sys.exit (2)
-    except Exception, e:
-        print "unknown error:  %s" % e
-        sys.exit (2)
-
-    return config
-
-def requestCert(url):
-    """
-    If the URL is https, then we will need to pass config['cert'] and
-    config['key'].
-    """
-    if re.match('^https:', url):
-        r = (config['cert'], config['key'])
-    else:
-        r = ()
-
-    return r
-
-def hostFact(fact):
-    """
-    Return a hash of name-to-fact values for a given fact.
-    """
-    query = "['=', 'name', '%s']" % fact
-    try:
-        payload = { 'query': json.dumps(eval(query))}
-    except SyntaxError:
-        p.error('Malformed query, check examples for help')
-
-    headers = {'Accept': 'application/json'}
-    try:
-        url = "%s%s" % ( config['server'], config['facts_url_base'] )
-        r = requests.get(url, headers=headers, params=payload,
-            cert=requestCert(url), verify=False)
-    except Exception, e:
-        p.error('%s (bad json?: %s)' % (e, payload))
-
-    if len(r.json()) == 0:
-        return {}
-
-    hash = {}
-    for node in r.json():
-        name = node['certname']
-        hash[name] = node['value']
-
-    return hash
 
 def node_too_old(node, hours):
     """
@@ -107,7 +47,8 @@ def node_print(node):
     Create a human-readable string saying how long it's been since a node
     has checked in.
     """
-    name = node['name']
+    if 'certname' in node: name = node['certname']
+    else:                  name = node['name']
 
     ts = time_from_timestamp(node['report_timestamp'])
     if ts is False: ts_string = "**no puppetdb records**"
@@ -135,18 +76,9 @@ def time_from_timestamp(timestamp):
 #########################################################################
 
 def main():
-    usage = "%prog [options] [HOSTPATTERN]"
-    parseConfig(config_file)
-
-    global p
-    p = optparse.OptionParser (usage = usage,
-        description = "query puppetdb for hosts that are too quiet")
+    p = puppetdb.generateParser(text, usage_text)
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours is "too many"?  default: %default')
-    p.add_option ('--debug', dest='debug', action='store_true',
-        default=False)
-
-    global opt
     opt, args = p.parse_args()
 
     if len(args) < 1:
@@ -155,32 +87,16 @@ def main():
         host_search = args[0]
 
     query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
-    try:
-        payload = { 'query': json.dumps(eval(query))}
-    except SyntaxError:
-        p.error('Malformed query, check examples for help')
+    nodes = puppetdb.queryNodes(query, opt)
 
-    headers = {'Accept': 'application/json'}
-    try:
-        url = "%s%s" % ( config['server'], config['nodes_url_base'] )
-        if opt.debug:
-            print "url: %s" % url
-            print "query: %s" % query
-        r = requests.get(url, headers=headers, params=payload,
-            cert=requestCert(url), verify=False)
-    except Exception, e:
-        p.error('%s (bad json?: %s)' % (e, payload))
-
-    if 'role_fact' in config:
-        role_fact = config['role_fact']
-    else:
-        role_fact = 'role'
+    if len(nodes) == 0:
+        sys.exit(0)
 
     global roles
-    roles = hostFact(role_fact)
+    roles = puppetdb.hostFact(opt.role_fact, opt)
 
     items = []
-    for node in r.json():
+    for node in nodes:
         if node_too_old(node, opt.hours):
             items.append(node_print(node))
 
@@ -217,6 +133,8 @@ puppetdb-tooquiet queries the puppetdb to find out which hosts have not
 checked in recently (where 'recently' is defined as 48 hours, though this
 is configurable).  The list is printed on STDOUT.
 
+Should support both v3 and v4 PuppetDB APIs.
+
 =head1 OPTIONS
 
 =over 4
@@ -249,7 +167,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2013-2015, Fermi National Accelerator Laboratory
+Copyright 2013-2016, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
