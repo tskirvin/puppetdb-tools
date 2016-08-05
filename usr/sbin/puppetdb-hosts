@@ -11,7 +11,7 @@ import puppetdb, sys
 #########################################################################
 
 ## Text for --help
-text = "query puppetdb to list all hosts"
+help_text = "query puppetdb to list all hosts"
 usage_text = "usage: %prog [options] [HOSTPATTERN]"
 
 #########################################################################
@@ -19,7 +19,7 @@ usage_text = "usage: %prog [options] [HOSTPATTERN]"
 #########################################################################
 
 def main():
-    p = puppetdb.generateParser(text, usage_text)
+    p = puppetdb.generateParser(help_text, usage_text)
     opt, args = p.parse_args()
 
     if len(args) < 1:   host_search = '.*'
@@ -58,7 +58,9 @@ B<puppetdb-hosts> cms.\*.fnal.gov
 =head1 USAGE
 
 puppetdb-hosts queries the puppetdb to find a list of hosts, and prints it
-to STDOUT.  Should support both v3 and v4 PuppetDB APIs.
+to STDOUT.
+
+Should support both v3 and v4 PuppetDB APIs.
 
 =head1 OPTIONS
 

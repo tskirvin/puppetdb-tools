@@ -17,7 +17,7 @@ hours = 24
 output_string = "%-30s %23s %23s"
 
 ## Text for --help
-text = "query puppetdb for hosts that are too quiet"
+help_text = "query puppetdb for hosts that are too quiet"
 usage_text = "usage: %prog [options] [HOSTPATTERN]"
 
 #########################################################################
@@ -76,7 +76,7 @@ def time_from_timestamp(timestamp):
 #########################################################################
 
 def main():
-    p = puppetdb.generateParser(text, usage_text)
+    p = puppetdb.generateParser(help_text, usage_text)
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours is "too many"?  default: %default')
     opt, args = p.parse_args()

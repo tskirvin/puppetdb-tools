@@ -11,7 +11,7 @@ import puppetdb, sys
 #########################################################################
 
 ## Text for --help
-text = "query puppetdb for system fact values"
+help_text = "query puppetdb for system fact values"
 usage_text = "usage: %prog [options] fact_name [VALUE]"
 
 #########################################################################
@@ -19,19 +19,16 @@ usage_text = "usage: %prog [options] fact_name [VALUE]"
 #########################################################################
 
 def main():
-    p = puppetdb.generateParser(text, usage_text)
+    p = puppetdb.generateParser(help_text, usage_text)
     p.add_option ('--json', dest='json', action='store_true',
         default=False, help="print json instead of the value")
     opt, args = p.parse_args()
 
-    if len(args) < 1:
+    if len(args) < 1 or len(args) > 2:
         p.print_help()
         exit (-1)
 
-    if len(args) == 1:
-        url = "%s%s/%s" % (opt.server, opt.facts_url_base, args[0])
-    else:
-        url = "%s%s/%s/%s" % (opt.server, opt.facts_url_base, args[0], args[1])
+    url = puppetdb.generateUrl('facts', opt, *args)
 
     headers = {'Accept': 'application/json'}
     try:

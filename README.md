@@ -1,15 +1,14 @@
 # puppetdb-utils
 
 This package provides some basic tools to query a puppetdb via a CLI.
-Most of the scripts use a centrally-installed json file, but some are
-still hard-coded to talk to my local puppetdb.  In both cases, it should
-be fairly simple to point at a server of your choice.
+These scripts use a (configurable-via-environment-variable) json config
+to determine how to talk to the server.
 
 These tools were written to be *less* general than any existing tools I've
 seen out there.  Specifically, I don't want to write the necessary JSON
 input at the command-line every time I'm trying to do a basic query.
 
-These scripts currently only work with the v3 PuppetDB API.
+These scripts should support both the v3 and v4 PuppetDB APIs.
 
 ## What is puppetdb?
 
@@ -97,16 +96,11 @@ come out of the central configuration file.
 This should work for talking to an https port, where auth requires your own puppet cert (which will only work as root):
 
     {
+        "server": "https://{puppetdb_fqdn}:8081",
         "ca": "/etc/puppetlabs/puppet/ssl/certs/ca.pem",
         "cert": "/etc/puppetlabs/puppet/ssl/certs/{fqdn}.fnal.gov.pem",
         "key": "/etc/puppetlabs/puppet/ssl/private_keys/{fqdn}.fnal.gov.pem",
-        "server": "https://{puppetdb_fqdn}:8081",
-        "nodes_url_base": "/v3/nodes",
-        "events_url_base": "/v3/events",
-        "facts_url_base": "/v3/facts",
-        "reports_url_base": "/v3/reports",
-        "resources_url_base": "/v3/resources",
-        "event_counts_url_base": "/v3/event-counts"
+        "api_version": 4
     }
 
 If you can make queries via http (e.g. without auth):
@@ -114,10 +108,12 @@ If you can make queries via http (e.g. without auth):
 
     {
         "server": "http://{puppetdb_fqdn}:8080",
-        "nodes_url_base": "/v3/nodes",
-        "events_url_base": "/v3/events",
-        "facts_url_base": "/v3/facts",
-        "reports_url_base": "/v3/reports",
-        "resources_url_base": "/v3/resources",
-        "event_counts_url_base": "/v3/event-counts"
+        "api_version": 3
     }
+
+### Environment Variables
+
+You can select alternate configuration files by setting `PUPPETDB_CONFIG`,
+e.g.:
+
+    export PUPPETDB_CONFIG=~/rpm/puppetdb-tools/etc/puppetdb/puppetdb3.json

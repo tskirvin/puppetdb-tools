@@ -1,5 +1,5 @@
 #!/bin/bash
-# puppetdb-wrapper - wraps a puppetdb call with the appropriate --cert and 
+# puppetdb-wrapper - wraps a puppetdb call with the appropriate --cert and
 # --key calls, based on what's in puppetdb.json.
 
 ##############################################################################
@@ -34,7 +34,7 @@ B<puppetdb-wrapper> I<URL>
 
 =head1 DESCRIPTION
 
-puppetdb-wrapper pulls the I<KEY> and I<CERT> parameters from the central 
+puppetdb-wrapper pulls the I<KEY> and I<CERT> parameters from the central
 F</etc/puppetdb/puppetdb.json> config and wraps a I<curl> call with them.
 
 =head1 PARAMETERS

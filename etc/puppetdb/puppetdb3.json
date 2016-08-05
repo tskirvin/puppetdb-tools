@@ -1,0 +1,7 @@
+{
+    "server": "https://ssi-puppetdb.fnal.gov:8081",
+    "cert": "/etc/puppetdb/public.pem",
+    "key":  "/etc/puppetdb/private.pem",
+    "api_version": 3,
+    "role_fact": "omd_group"
+}

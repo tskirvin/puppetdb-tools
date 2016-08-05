@@ -22,7 +22,7 @@ FILES_LOCAL = usr etc
 
 ## When creating the local 
 # TAR_EXCLUDE = --exclude *.bak --exclude .git
-TAR_EXCLUDE = 
+TAR_EXCLUDE = tests etc/puppetdb/puppetdb3.json etc/puppetdb/puppetdb4.json
 
 ##############################################################################
 ### Targets ##################################################################

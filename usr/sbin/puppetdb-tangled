@@ -129,7 +129,7 @@ def changeString(event, skip):
 
         Service[ipmi]: stopped -> running (success)
 
-    Events with the status 'skipped' or 'noop' are skipped if the skip 
+    Events with the status 'skipped' or 'noop' are skipped if the skip
     flag is set.
     """
 
@@ -248,7 +248,7 @@ A "tangled" host is defined as one where the most recent report was a
 success in which something changed (an event status changed), and some
 number of these changes have occurred several time in the last several
 runs - that is, something is changing back and forth over and over again,
-or a "success" isn't really a success at all.  
+or a "success" isn't really a success at all.
 
 The list of associated events is printed on STDOUT, in the format:
 
@@ -292,7 +292,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2014-2015, Fermi National Accelerator Laboratory
+Copyright 2014-2016, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify it
 under the same terms as Perl itself.
