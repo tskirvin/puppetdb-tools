@@ -43,6 +43,8 @@ for i in bin sbin; do
     fi
 done
 
+python setup.py install --prefix=${RPM_BUILD_ROOT}/usr
+
 %clean
 if [[ $RPM_BUILD_ROOT != "/" ]]; then
     rm -rf $RPM_BUILD_ROOT
@@ -52,16 +54,14 @@ fi
 %defattr(-,root,root)
 /usr/share/man/man8/*
 /usr/sbin/*
+/usr/lib*/python*/site-packages/*
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
-* Tue Jul 19 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.10-0
-- puppetdb-uuid-by-host - fixed the SSL parts
-- puppetdb-manager - fixed the SSL parts, search for enc_role now
-- puppetdb-monitor - fixed the SSL parts, uses current OMD scripts
-- puppetdb-node-events - fixed the SSL parts
-- puppetdb-report-uptime - fixed the SSL parts
-- fixed help "short description" across the board
+* Tue Jul 19 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.0-0
+- added full support for v3 + v4 APIs
+- made puppetdb module, offloaded a lot of every script into it
+- lots of miscellaneous fixes
 
 * Wed May 18 2016   Tim Skirvin <tskirvin@fnal.gov>  1.0.9-0
 - puppetdb-last-successful-run - new script

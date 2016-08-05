@@ -1,4 +1,0 @@
-export PYTHONPATH=~/rpm/puppetdb-tools
-
-alias PDB3="PUPPETDB_CONFIG=~/rpm/puppetdb-tools/etc/puppetdb/puppetdb3.json"
-alias PDB4="PUPPETDB_CONFIG=~/rpm/puppetdb-tools/etc/puppetdb/puppetdb4.json"

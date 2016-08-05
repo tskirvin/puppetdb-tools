@@ -46,7 +46,7 @@ api = {
 ### Subroutines #########################################################
 #########################################################################
 
-def eventChangeString(event):
+def eventChangeString(event, **kwargs):
     """
     Creates and returns a single-line formatted string describing a single
     event, based on the output of the puppetdb 'events' endpoint.  This
@@ -54,7 +54,8 @@ def eventChangeString(event):
 
         Service[ipmi]: stopped -> running (success)
 
-    Events with the status 'skipped' are skipped if the skip flag is set.
+    Events with the status 'skipped' or 'noop' are skipped unless the
+    'no-skip' flag is passwd via kwargs.
     """
 
     new = event['new-value']
@@ -63,6 +64,15 @@ def eventChangeString(event):
     type  = event['resource-type']
     status = event['status']
     message = event['message']
+
+    if 'no-skip' in kwargs: skip = kwargs['no-skip']
+    else:                   skip = True
+    
+    if skip and status == 'skipped':
+        return None
+
+    if skip and status == 'noop':
+        return None
 
     string = "%s[%s]: %s -> %s (%s)" % (type, title, old, new, message)
 
@@ -82,9 +92,13 @@ def eventSuccessByReport (report_id, opt):
         query = "%s" % event_query
         payload = {
             'query': json.dumps(eval(query)),
-            'summarize-by': 'certname',
-            'count-by':     'certname',
+            'summarize_by': 'certname',
+            'count_by':     'certname',
         }
+        if (opt.api_version < 4):
+            payload['summarize-by']  = payload.pop('summarize_by')
+            payload['count-by']      = payload.pop('count_by')
+
     except SyntaxError:
         raise 'Malformed query, check examples for help'
 
@@ -268,7 +282,7 @@ def nodesFailed (host_search, opt):
             'counts_filter': json.dumps(['>', 'failures', 0 ])
         }
         # support old version of the API
-        if (opt.api_version <= 4):
+        if (opt.api_version < 4):
             payload['summarize-by']  = payload.pop('summarize_by')
             payload['count-by']      = payload.pop('count_by')
             payload['counts-filter'] = payload.pop('counts_filter')
@@ -331,6 +345,7 @@ def nodePrintTimestamp(node, timestamp):
     else:             role = 'unknown'
 
     return output_string % (name, ts_string, role)
+
 
 def parseConfig():
     """

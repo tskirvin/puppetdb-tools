@@ -18,11 +18,11 @@
 ## Makefile itself, Makefile.local, the *.spec file, and anything listed in 
 ## $(FILES_LOCAL).
 # FILES_LOCAL = usr etc
-FILES_LOCAL = usr etc
+FILES_LOCAL = usr etc setup.py puppetdb
 
 ## When creating the local 
 # TAR_EXCLUDE = --exclude *.bak --exclude .git
-TAR_EXCLUDE = tests etc/puppetdb/puppetdb3.json etc/puppetdb/puppetdb4.json
+TAR_EXCLUDE = --exclude test --exclude *.pyc --exclude *.pyo
 
 ##############################################################################
 ### Targets ##################################################################
