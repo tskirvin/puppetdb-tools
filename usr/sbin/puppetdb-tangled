@@ -23,6 +23,40 @@ usage_text = "usage: %prog [options] [HOSTPATTERN]"
 ### Subroutines #########################################################
 #########################################################################
 
+def changeString(event, skip, opt):
+    """
+    Creates and returns a single-line formatted string describing a single
+    event, based on the output of the puppetdb 'events' endpoint.  This
+    string is generally of the format:
+
+        Service[ipmi]: stopped -> running (success)
+
+    Events with the status 'skipped' or 'noop' are skipped if the skip
+    flag is set.
+    """
+
+    if (opt.api_version < 4):
+        new = event['new-value']
+        old = event['old-value']
+        title = event['resource-title']
+        type  = event['resource-type']
+        status = event['status']
+    else:
+        new = event['new_value']
+        old = event['old_value']
+        title = event['resource_title']
+        type  = event['resource_type']
+        status = event['status']
+
+    if skip and status == 'skipped':
+        return None
+
+    if skip and status == 'noop':
+        return None
+
+    string = "%s[%s]: %s -> %s (%s)" % (type, title, old, new, status)
+    return string
+
 def time_from_timestamp(timestamp):
     """
     Parse a timestamp with dateutil.parser.parse(), and set to the local
@@ -77,7 +111,7 @@ def hostTangled(hostname, opt):
         r = puppetdb.request(url, headers=headers, params=payload)
         items = {}
         for event in r.json():
-            string = puppetdb.eventChangeString(event)
+            string = changeString(event, True, opt)
             if string is not None:
                 if not string in items: items[string] = 1
                 else:                   items[string] = items[string] + 1

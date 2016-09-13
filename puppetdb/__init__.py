@@ -55,17 +55,26 @@ def eventChangeString(event, **kwargs):
         Service[ipmi]: stopped -> running (success)
 
     Events with the status 'skipped' or 'noop' are skipped unless the
-    'no-skip' flag is passwd via kwargs.
+    'no_skip' flag is passwd via kwargs.
     """
 
-    new = event['new-value']
-    old = event['old-value']
-    title = event['resource-title']
-    type  = event['resource-type']
+    opt = kwargs['opt']
+
+    if (opt.api_version < 4):
+        new = event['new-value']
+        old = event['old-value']
+        title = event['resource-title']
+        type  = event['resource-type']
+    else:
+        new = event['new_value']
+        old = event['old_value']
+        title = event['resource_title']
+        type  = event['resource_type']
+
     status = event['status']
     message = event['message']
 
-    if 'no-skip' in kwargs: skip = kwargs['no-skip']
+    if 'no_skip' in kwargs: skip = kwargs['no_skip']
     else:                   skip = True
     
     if skip and status == 'skipped':
@@ -250,7 +259,7 @@ def hostFailedWhy(hostname, opt):
     r = request(url, params=payload, headers=headers)
     text = []
     for event in r.json():
-        string = eventChangeString(event)
+        string = eventChangeString(event, opt=opt)
         if string is not None:
             text.append(string)
 

@@ -34,3 +34,4 @@ confirm: 	confirm-slf6
 copy:		copy-slf6
 rpm-sign: 	sign-slf6
 test: 		rpm-6-nosign
+deploy:     deploy-6

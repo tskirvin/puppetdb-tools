@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.0.0
+Version:        2.0.3
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -58,7 +58,16 @@ fi
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
-* Tue Jul 19 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.0-0
+* Tue Sep 13 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.3-0
+- puppetdb-tangled - fixed
+
+* Wed Sep 07 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.2-0
+- fixed eventChangeString() to work with both v3 and v4 APIs
+  
+* Wed Aug 10 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.1-0
+- puppetdb-tangled - fixed the reporting to work the "old way"
+
+* Mon Aug 08 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.0-0
 - added full support for v3 + v4 APIs
 - made puppetdb module, offloaded a lot of every script into it
 - lots of miscellaneous fixes
