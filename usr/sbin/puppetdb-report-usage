@@ -1,0 +1,133 @@
+#!/usr/bin/python
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+import puppetdb, re, sys
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+## Text for --help
+text = "query puppetdb for per-zone usage data"
+usage_text = "usage: %prog [options] [HOSTPATTERN]"
+
+layout = "%-40s  %8.1f GB  %7d"
+layout_head = "%-40s  %11s  %7s"
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    p = puppetdb.generateParser(text, usage_text)
+    opt, args = p.parse_args()
+
+    z      = puppetdb.hostFact('enc_zone', opt)
+    is_vm  = puppetdb.hostFact('is_virtual', opt)
+    memory = puppetdb.hostFact('memoryfree_mb', opt)
+    cores  = puppetdb.hostFact('processorcount', opt)
+
+    zones = {}
+    hosts = {}
+    ram   = {}
+    procs = {}
+
+    for host in z.keys():
+        zone    = z[host]
+        if is_vm[host]:  virtual="virtual"
+        else:            virtual="physical"
+        name = "%s.%s" % (zone, virtual)
+        hosts[host] = name
+
+        zones[name] = 1
+        ram[name]   = 0
+        procs[name] = 0
+
+    for host in memory.keys():
+        target = hosts[host]
+        if ram.get(target): pass
+        else:               ram[target] = 0
+        ram[target] = ram[target] + memory[host]
+
+    for host in cores.keys():
+        target = hosts[host]
+        if procs.get(target): pass
+        else:                 procs[target] = 0
+        procs[target] = procs[target] + cores[host]
+
+    total_ram = 0
+    total_procs = 0
+
+    print layout_head % ("Zone/Virtual", "Memory", "Cores")
+    print ""
+    for name in sorted(zones.keys()):
+        print layout % (name, ram[name] / 1024, procs[name])
+        total_ram   = total_ram + ram[name]
+        total_procs = total_procs + procs[name]
+
+    print ""
+    print layout % ("Total", total_ram / 1024, total_procs)
+    
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-report-usage - report RAM and core counts by zone
+
+=head1 SYNOPSYS
+
+B<puppetdb-report-usage>
+
+=head1 USAGE
+
+puppetdb-report-usage generates a printable report, by zone, that shows:
+
+=over 2
+
+=item 0. zone name (and physical-vs-virtual)
+
+=item 1. How much RAM (in GB)
+
+=item 2. How many cores
+
+=back
+
+Should support both v3 and v4 PuppetDB APIs.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 COPYRIGHT
+
+Copyright 2016, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""

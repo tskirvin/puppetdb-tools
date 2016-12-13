@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.0.3
+Version:        2.0.5
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -58,6 +58,12 @@ fi
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Tue Dec 13 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.5-0
+- puppetdb-report-usage - added chart headers
+
+* Tue Dec 13 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.4-0
+- puppetdb-report-usage - new script
+
 * Tue Sep 13 2016   Tim Skirvin <tskirvin@fnal.gov>  2.0.3-0
 - puppetdb-tangled - fixed
 
