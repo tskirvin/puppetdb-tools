@@ -47,16 +47,18 @@ def main():
         procs[name] = 0
 
     for host in memory.keys():
-        target = hosts[host]
-        if ram.get(target): pass
-        else:               ram[target] = 0
-        ram[target] = ram[target] + memory[host]
+        if host in hosts:
+            target = hosts[host]
+            if ram.get(target): pass
+            else:               ram[target] = 0
+            ram[target] = ram[target] + memory[host]
 
     for host in cores.keys():
-        target = hosts[host]
-        if procs.get(target): pass
-        else:                 procs[target] = 0
-        procs[target] = procs[target] + cores[host]
+        if host in hosts:
+            target = hosts[host]
+            if procs.get(target): pass
+            else:                 procs[target] = 0
+            procs[target] = procs[target] + cores[host]
 
     total_ram = 0
     total_procs = 0
