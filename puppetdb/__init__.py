@@ -76,7 +76,7 @@ def eventChangeString(event, **kwargs):
 
     if 'no_skip' in kwargs: skip = kwargs['no_skip']
     else:                   skip = True
-    
+
     if skip and status == 'skipped':
         return None
 
@@ -201,7 +201,7 @@ def hostFactWild(fact, opt):
     """
     Return a hash of name-to-fact values for a given fact wildcard.
     """
-    url = generateUrl('facts', opt, fact)
+    url = generateUrl('facts', opt)
 
     query = "['~', 'name', '%s']" % fact
     try:
