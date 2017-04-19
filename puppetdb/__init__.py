@@ -169,11 +169,12 @@ def generateUrl (action, optHash, *argArray):
 
     return url
 
-def hostFact(fact, opt):
+def hostFact(fact, opt, value=None):
     """
     Return a hash of name-to-fact values for a given fact.
     """
-    url = generateUrl('facts', opt, fact)
+    if value:   url = generateUrl('facts', opt, fact, value)
+    else:       url = generateUrl('facts', opt, fact)
 
     payload = {}
 
