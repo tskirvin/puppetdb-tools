@@ -35,7 +35,6 @@ def node_facts(node, opt):
 
     facts = {}
     for fact in r.json():
-        print fact
         name = fact['name']
         facts[name] = fact['value']
 
@@ -47,6 +46,8 @@ def node_facts(node, opt):
 
 def main():
     p = puppetdb.generateParser(help_text, usage_text)
+    p.add_option ('--json', dest='json', action='store_true',
+        default=False, help="print json instead of the value")
     opt, args = p.parse_args()
 
     if len(args) < 1: host_search = '.*'
@@ -76,9 +77,15 @@ def main():
         if opt.api_version < 4: name = node['name']
         else:                   name = node['certname']
         facts = node_facts(name, opt)
-        for fact in facts.keys():
-            string = output_string % (name, fact, facts[fact])
-            print string
+        if opt.json:
+            output.append(facts)
+        else:
+            for fact in facts.keys():
+                string = output_string % (name, fact, facts[fact])
+                print string
+
+    if opt.json: 
+        print json.dumps(output, sort_keys=True, indent=4)
 
     sys.exit(0)
 
@@ -124,6 +131,10 @@ need to escape wild cards if you're using this from the CLI.
 
 Prints some short help documentation and exits.
 
+=item --json
+
+Prints the output as json instead of text.
+
 =back
 
 =head1 AUTHOR
@@ -132,7 +143,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2013-2016, Fermi National Accelerator Laboratory
+Copyright 2013-2017, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
