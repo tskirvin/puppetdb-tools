@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.0.9
+Version:        2.0.10
 Release:        1%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -58,6 +58,9 @@ fi
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Wed Oct 18 2017   Tim Skirvin <tskirvin@fnal.gov>  2.0.10-1
+- puppetdb-tangled - added a '--count' parameter
+
 * Tue Sep 26 2017   Tim Skirvin <tskirvin@fnal.gov>  2.0.9-1
 - adding SL7 support
 

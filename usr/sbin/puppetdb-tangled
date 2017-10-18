@@ -15,6 +15,9 @@ import json, puppetdb, re, sys
 # how many hours back are we searching for reports?
 hours = 4
 
+# how many matches is "enough"
+count = 2
+
 ## Text for --help
 help_text = "query puppetdb for hosts that are tangled"
 usage_text = "usage: %prog [options] [HOSTPATTERN]"
@@ -118,7 +121,7 @@ def hostTangled(hostname, opt):
 
         text = []
         for i in items:
-            if items[i] > 1:
+            if items[i] >= opt.count:
                 text.append("%-25s %s (%d)" % (hostname, i, items[i]))
 
         return text
@@ -135,6 +138,8 @@ def main():
     p = puppetdb.generateParser(help_text, usage_text)
     p.add_option ('--hours', dest='hours', default=hours, type='int',
         help='how many hours of reports?  default: %default')
+    p.add_option ('--count', dest='count', default=count, type='int',
+        help='how many incidents before we report?  default: %default')
     opt, args = p.parse_args()
 
     if len(args) < 1: host_search = '.*'
@@ -240,6 +245,11 @@ Should support both v3 and v4 PuppetDB APIs.
 Default host pattern to match.  Defaults to '.*'; remember that you may
 need to escape wild cards if you're using this from the CLI.
 
+=item --count I<COUNT>
+
+How many times should a given entry appear before we print it?  Default is
+2.
+
 =item --hours I<HOURS>
 
 How many hours back will we check to see if the host is tangled?  Defaults
@@ -259,7 +269,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2014-2016, Fermi National Accelerator Laboratory
+Copyright 2014-2017, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify it
 under the same terms as Perl itself.
