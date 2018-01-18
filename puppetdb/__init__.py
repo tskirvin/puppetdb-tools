@@ -33,12 +33,13 @@ api = {
         'resources':    '/v3/resources',
     },
     4: {
-        'event_counts': '/pdb/query/v4/event-counts',
-        'events':       '/pdb/query/v4/events',
-        'facts':        '/pdb/query/v4/facts',
-        'nodes':        '/pdb/query/v4/nodes',
-        'reports':      '/pdb/query/v4/reports',
-        'resources':    '/pdb/query/v4/resources',
+        'event_counts':  '/pdb/query/v4/event-counts',
+        'events':        '/pdb/query/v4/events',
+        'facts':         '/pdb/query/v4/facts',
+        'fact-contents': '/pdb/query/v4/fact-contents',
+        'nodes':         '/pdb/query/v4/nodes',
+        'reports':       '/pdb/query/v4/reports',
+        'resources':     '/pdb/query/v4/resources',
     }
 }
 
@@ -185,6 +186,51 @@ def hostFact(fact, opt, value=None):
     headers = {'Accept': 'application/json'}
     try:
         r = request(url, headers=headers)
+    except Exception, e:
+        p.error('%s (bad json?: %s)' % (e, payload))
+
+    if len(r.json()) == 0:
+        return {}
+
+    hash = {}
+    for node in r.json():
+        name = node['certname']
+        hash[name] = node['value']
+
+    return hash
+
+def hostFactHash(factArray, opt, value=None):
+    """
+    Use the fact-contents endpoint to look up facts.  We take a factArray
+    instead of a simple fact; otherwise this works like hostFact().
+    """
+    url = generateUrl('fact-contents', opt)
+
+    try:
+        q1_array = []
+        for f in factArray:
+            q1_array.append('"%s"' % f.encode('ascii'))
+        q1_string = ', '.join(q1_array)
+        q1 = ['=', "path", factArray ]
+        if value:
+            q2 = ['=', 'value', value]
+            query = ['and', q1, q2]
+        else:
+            query = q1
+        query = "%s" % query
+        payload = {
+            'query': json.dumps(eval(query)),
+        }
+    except Exception, e:
+        raise 'Malformed query, check examples for help'
+
+    if opt.debug:
+        print "url: %s" % url
+        print "params: %s" % payload
+
+    headers = {'Accept': 'application/json'}
+    try:
+        r = request(url, headers=headers, params=payload)
     except Exception, e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
