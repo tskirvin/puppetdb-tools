@@ -288,6 +288,34 @@ def hostFailedWhy(hostname, opt):
     the run failed.  Returns a text string (as an array) suitable for
     printing (from eventChangeString()).
     """
+    url = generateUrl('reports', opt)
+
+    host_query = "['=', 'certname', '%s']" % hostname
+    time_query = "['=', 'latest_report?', 'true']"
+    query = "['and', %s, %s]" % (host_query, time_query)
+    try:
+        payload = { 'query': json.dumps(eval(query))}
+    except SyntaxError:
+        p.error('Malformed query, check examples for help')
+
+    headers = {'Accept': 'application/json'}
+    if opt.debug:
+        print "url: %s" % url
+        print "payload: %s" % payload
+
+    r = request(url, params=payload, headers=headers)
+    text = []
+    for event in r.json():
+        return reportChangeString(event, opt=opt)
+
+    return ""
+
+def hostFailedWhyEvents(hostname, opt):
+    """
+    Look at the latest system report for a given host, and determine why
+    the run failed.  Returns a text string (as an array) suitable for
+    printing (from eventChangeString()).
+    """
     url = generateUrl('events', opt)
 
     host_query = "['=', 'certname', '%s']" % hostname
@@ -322,6 +350,40 @@ def hostRoles(opt):
 def nodesFailed (host_search, opt):
     """
     Return a list of hosts that failed.
+    """
+
+    url = generateUrl('reports', opt)
+    try:
+        latest_query = "['=', 'latest_report?', True]"
+        failed_query = "['=', 'status', 'failed']"
+        host_query = ['~', 'certname', '^%s$' % host_search ]
+        query = "['AND', %s, %s, %s]" \
+            % (host_query, latest_query, failed_query)
+        payload = { 'query': json.dumps(eval(query)) }
+
+    except SyntaxError:
+        raise "Malformed query, check examples for help"
+
+    headers = {'Accept': 'application/json'}
+    try:
+        if opt.debug:
+            print "url: %s" % url
+            print "payload: %s" % payload
+        r = request(url, headers=headers, params=payload)
+        items = []
+        for node in r.json():
+            if 'certname' in node:
+                items.append(node['certname'])
+        return items
+
+    except Exception, e:
+        raise e
+    except:
+        raise 'bad json?: %s' % e
+
+def nodesFailedEvents (host_search, opt):
+    """
+    Return a list of hosts that failed by looking at event counts.
     """
 
     url = generateUrl('event_counts', opt)
@@ -445,7 +507,35 @@ def queryNodes(query, opt):
             items.append(node)
         return items
     except Exception, e:
-        raise "error (bad json?): %s" % e
+       raise "error (bad json?): %s" % e
+
+def reportChangeString(report, **kwargs):
+    """
+    Creates and returns a single-line formatted string describing a single
+    event, based on the output of the puppetdb 'events' endpoint.  This
+    string is generally of the format:
+
+        Service[ipmi]: stopped -> running (success)
+
+    Events with the status 'skipped' or 'noop' are skipped unless the
+    'no_skip' flag is passwd via kwargs.
+    """
+
+    opt = kwargs['opt']
+
+    try:
+        data = report['logs']['data']
+    except Exception, e:
+        raise 'tried to load data from report: %s' % e
+
+    r = []
+    for entry in data:
+        msg = entry['message']
+        level = entry['level']
+        if level == 'err':
+            r.append(str(msg))
+
+    return r
 
 def reportsPerHost (host, opt):
     """
