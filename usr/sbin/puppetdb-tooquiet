@@ -101,7 +101,7 @@ def main():
             items.append(node_print(node))
 
     if len(items) > 0:
-        for i in items: print i
+        for i in sorted(items): print i
 
     sys.exit(0)
 
