@@ -19,8 +19,16 @@ import json, optparse, os, re, requests, sys
 
 ## this isn't ideal, but until I actually start verifying the cert this
 ## is the best I can do
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+try:
+    import urllib3
+    urllib3.disable_warnings()
+except Exception, e:
+    pass
+
+# try:
+#     requests.packages.urllib3.disable_warnings(SNIMissingWarning)
+# except Exception, e:
+#     print "Skipping disable of SNIMissingWarning"
 
 ## sub-urls that we support
 api = {
@@ -511,17 +519,20 @@ def queryNodes(query, opt):
 
 def reportChangeString(report, **kwargs):
     """
-    Creates and returns a single-line formatted string describing a single
-    event, based on the output of the puppetdb 'events' endpoint.  This
-    string is generally of the format:
-
-        Service[ipmi]: stopped -> running (success)
-
-    Events with the status 'skipped' or 'noop' are skipped unless the
-    'no_skip' flag is passwd via kwargs.
+    Creates and returns an array of strings showing a change from the
+    report endpoint.  This is the text that puppet itself generated.  It
+    only shows 'errs' at this point.
     """
 
     opt = kwargs['opt']
+
+    levels = ['err']
+    if 'levels' in kwargs:
+        levels = kwargs['levels']
+
+    text_match = '.*'
+    try: text_match = opt.text
+    except Exception, e: text_match = '.*'
 
     try:
         data = report['logs']['data']
@@ -531,9 +542,11 @@ def reportChangeString(report, **kwargs):
     r = []
     for entry in data:
         msg = entry['message']
+        source = entry['source']
         level = entry['level']
-        if level == 'err':
-            r.append(str(msg))
+        if level in levels:
+            if re.search(text_match, msg): 
+                r.append("%s - %s" % (source, msg) )
 
     return r
 

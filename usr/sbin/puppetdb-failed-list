@@ -20,6 +20,10 @@ usage_text = "usage: %prog [options] [HOSTPATTERN]"
 
 def main():
     p = puppetdb.generateParser(help_text, usage_text)
+    p.add_option ('--text', dest='text', action='store', 
+        default='.*', help='text to match; default: \'%default\'')
+    p.add_option ('--short', dest='short', action='store_true',
+        default=False, help='only print the node names; default: %default')
     opt, args = p.parse_args()
 
     if len(args) < 1:   host_search = '.*'
@@ -33,10 +37,14 @@ def main():
     for i in sorted(failed):
         if i in nodes:
             failures = puppetdb.hostFailedWhy(i, opt)
-            print "Node %s - %d failures" % (i, len(failures))
-            for j in failures:
-                print "  %s" % j
-            print ""
+            if len(failures) > 0:
+                if opt.short: print i
+                else:
+                    print "Node %s - %d failure%s" % (i, len(failures),
+                        ('s' if len(failures) != 1 else '') )
+                    for j in failures:
+                        print "  %s" % j
+                    print ""
 
     sys.exit(0)
 
@@ -68,9 +76,9 @@ STDOUT.
 
 The list of associated events is printed on STDOUT, in the format:
 
-    Node d0cs3093.fnal.gov - 2 failures
-      Augeas[add clogger.fnal.gov to log service]: None -> None (Saving failed, see debug)
-      Augeas[add fefadmin03 as log host]: None -> None (Saving failed, see debug)
+    Node foo.fnal.gov - 2 failures
+      Facter - error while processing "/opt/puppetlabs/facter/facts.d/snow.sh" for external facts: child process returned non-zero exit status (-1).
+      /Stage[main]/P_mount/P_mount::Mount[bar]/Mount[/baz] - Could not evaluate: Execution of '/bin/mount /baz' returned 32: mount.nfs: access denied by server while mounting bar:/baz
 
 Should support both v3 and v4 PuppetDB APIs.
 
@@ -83,9 +91,18 @@ Should support both v3 and v4 PuppetDB APIs.
 Default host pattern to match.  Defaults to '.*'; remember that you may
 need to escape wild cards if you're using this from the CLI.
 
+=item --text I<PATTERN>
+
+Only match errors with this text pattern.  Default is I<'.*'>.
+
 =item --help
 
 Prints some short help documentation and exits.
+
+=item --short
+
+Don't print the text about the problems, just print the hostnames; helpful
+for scripting.
 
 =back
 
@@ -97,7 +114,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2014-2016, Fermi National Accelerator Laboratory
+Copyright 2014-2018, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify it
 under the same terms as Perl itself.

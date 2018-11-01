@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.0.12
+Version:        2.1.1
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -58,6 +58,14 @@ fi
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Wed Oct 03 2018   Tim Skirvin <tskirvin@fnal.gov>  2.1.1-0
+- disabling more urllib3 warnings (probably too many)
+
+* Fri Sep 21 2018   Tim Skirvin <tskirvin@fnal.gov>  2.1.0-0
+- puppetdb-failed-list - add '--short' and '--text' options
+- hostFailedWhy() output format now includes the source of the message
+  (which makes it much more useful)
+
 * Thu Sep 20 2018   Tim Skirvin <tskirvin@fnal.gov>  2.0.12-0
 - puppetdb-tooquiet - sorts output
 - hostFailedWhy() and nodesFailed() now look at reports endpoint instead
