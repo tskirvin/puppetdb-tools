@@ -22,13 +22,10 @@ import json, optparse, os, re, requests, sys
 try:
     import urllib3
     urllib3.disable_warnings()
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 except Exception, e:
+    print e
     pass
-
-# try:
-#     requests.packages.urllib3.disable_warnings(SNIMissingWarning)
-# except Exception, e:
-#     print "Skipping disable of SNIMissingWarning"
 
 ## sub-urls that we support
 api = {

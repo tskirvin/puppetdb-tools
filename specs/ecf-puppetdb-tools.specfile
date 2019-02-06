@@ -1,7 +1,7 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.1.1
-Release:        0%{?dist}
+Version:        2.1.2
+Release:        1%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0:        %{name}-%{version}-%{release}.tar.gz
@@ -58,6 +58,12 @@ fi
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Tue Jan 15 2019   Tim Skirvin <tskirvin@fnal.gov>  2.1.2-1
+- trying again to turn off ssl warnings (SL7 only)
+
+* Thu Nov 01 2018   Tim Skirvin <tskirvin@fnal.gov>  2.1.2-0
+- puppetdb-node-facts - use 'certname' for searching instead of the fqdn fact
+
 * Wed Oct 03 2018   Tim Skirvin <tskirvin@fnal.gov>  2.1.1-0
 - disabling more urllib3 warnings (probably too many)
 

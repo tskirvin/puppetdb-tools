@@ -53,7 +53,7 @@ def main():
     if len(args) < 1: host_search = '.*'
     else:             host_search = args[0]
 
-    query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
+    query = "['~', 'certname', '^%s$']" % host_search
     try:
         payload = { 'query': json.dumps(eval(query))}
     except SyntaxError:
