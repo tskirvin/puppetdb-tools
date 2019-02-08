@@ -90,9 +90,9 @@ def main():
     try:
         nodes = queryResourcesPuppetDb(classname, opt)
         if not nodes:
-            print "no matches"
-        for i in nodes:
-            print json.dumps(i, sort_keys=True, indent=4)
+            print json.dumps([])
+        else:
+            print json.dumps(nodes, sort_keys=True, indent=4)
     except Exception, e:
         print "error: %s" % e
         sys.exit(-1)
