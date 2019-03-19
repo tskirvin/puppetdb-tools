@@ -18,11 +18,13 @@
 ## Makefile itself, Makefile.local, the *.spec file, and anything listed in 
 ## $(FILES_LOCAL).
 # FILES_LOCAL = usr etc
-FILES_LOCAL = usr etc setup.py puppetdb
+FILES_LOCAL = usr etc setup.py puppetdb README.md ecf-puppetdb-tools.spec
 
 ## When creating the local 
 # TAR_EXCLUDE = --exclude *.bak --exclude .git
 TAR_EXCLUDE = --exclude test --exclude *.pyc --exclude *.pyo
+
+VERS := $(shell egrep ^Version *.spec | cut -d':' -f2 | tr -d ' ')
 
 ##############################################################################
 ### Targets ##################################################################
@@ -34,4 +36,23 @@ confirm: 	confirm-slf6 confirm-slf7
 copy:		copy-slf6 copy-slf7
 rpm-sign: 	sign-slf6 sign-slf7
 test: 		rpm-6-nosign
-deploy:     deploy-6 deploy-7
+deploy:		deploy-6 deploy-7
+
+#############################################################################
+### PyPi ####################################################################
+#############################################################################
+
+pip-test:   pip-build pip-send-test
+pip-commit: pip-build pip-send-main
+
+pip-clean:
+	rm dist/*
+
+pip-build:
+	python3 setup.py sdist bdist_wheel
+
+pip-send-test:
+	python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*-$(VERS)*
+
+pip-send-main:
+	python3 -m twine upload dist/*-$(VERS)*

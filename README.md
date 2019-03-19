@@ -1,8 +1,8 @@
-# puppetdb-utils
+# puppetdb-tools
 
-This package provides some basic tools to query a puppetdb via a CLI.
-These scripts use a (configurable-via-environment-variable) json config
-to determine how to talk to the server.
+This package provides tools to interact with a puppetdb via a CLI.  These
+scripts use a (configurable-via-environment-variable) json config to
+determine how to talk to the server.
 
 These tools were written to be *less* general than any existing tools I've
 seen out there.  Specifically, I don't want to write the necessary JSON
@@ -12,7 +12,7 @@ These scripts should support both the v3 and v4 PuppetDB APIs.
 
 ## What is puppetdb?
 
-http://docs.puppetlabs.com/puppetdb/latest/index.html
+<http://docs.puppetlabs.com/puppetdb/latest/index.html>
 
 ## Scripts
 
@@ -22,6 +22,7 @@ This is not an exhaustive list.
 
 Queries for a given fact, and lists the hosts that have that fact (along
 with the value of the fact).  A specific value can be specified as well.
+Example: `puppetdb-fact puppetversion`
 
 ### puppetdb-failed
 
@@ -34,10 +35,14 @@ Queries the puppetdb for hosts that had failures in their last run, and
 prints out all of the things failed.  This is a useful report to send out
 via email to your team.
 
-### puppetdb-farmlets
+### puppetdb-farmlet
 
 Queries the puppetdb for host names, based on zone/role/subrole (our local
-three-level way of looking up hostnames).  
+three-level way of looking up hostnames).
+
+### puppetdb-hosts
+
+List all hosts in the puppetdb.
 
 ### puppetdb-last-successful-run
 
@@ -68,6 +73,15 @@ Lists resources deployed on a node or set of nodes.  This is very
 powerful, and the CLI is probably not good enough for what you'd actually
 want to do with the package.
 
+### puppetdb-report-uptime
+
+Lists kernel versions and facts.
+
+### puppetdb-resources
+
+Search for a given resource type across all hosts, e.g.
+`puppetdb-resources Class --match Mysql::Server`
+
 ### puppetdb-tangled
 
 puppetdb-tangled queries the puppetdb to find hosts which are "tangled",
@@ -86,6 +100,20 @@ Lists nodes that have not checked into the server for the last 48 hours
 
 Simple bash script to wrap curl with the values of 'key' and 'cert' that
 come out of the central configuration file.
+
+-------------------------------------------------------------------------------
+
+## Local Scripts
+
+These scripts may not be helpful to others, but are templates for our own
+use and show how we interact with facts.  These may be useful to others as
+templates.
+
+* puppetdb-host-csv
+* puppetdb-manager
+* puppetdb-monitor
+* puppetdb-report-usage
+* puppetdb-uuid-by-host
 
 -------------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.1.3
+Version:        2.1.4
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -8,14 +8,13 @@ Source0:        %{name}-%{version}-%{release}.tar.gz
 BuildArch:      noarch
 Requires:       python python-dateutil python-requests
 
-BuildRequires:  rsync python
-Vendor:         Fermi USCMS-T1
+BuildRequires:  rsync python python-setuptools
 License:        BSD
 Distribution:   ECF-SSI
 URL:            https://github.com/tskirvin/puppetdb-tools
 
 %description
-ECF-SSI @ FNAL - scripts for querying the puppetdb
+Scripts and libraries for querying puppetdb
 
 %prep
 
@@ -28,11 +27,11 @@ if [[ $RPM_BUILD_ROOT != "/" ]]; then
     rm -rf $RPM_BUILD_ROOT
 fi
 
-mkdir -p usr/share/man/man8
-for i in `ls usr/sbin`; do
-    pod2man --section 8 --center="System Commands" usr/sbin/${i} \
-        > usr/share/man/man8/${i}.8 ;
-    bzip2 usr/share/man/man8/${i}.8 ;
+mkdir -p usr/share/man/man1
+for i in `ls usr/bin`; do
+    pod2man --section 1 --center="System Commands" usr/bin/${i} \
+        > usr/share/man/man1/${i}.1 ;
+    bzip2 usr/share/man/man1/${i}.1 ;
 done
 
 rsync -Crlpt ./usr ${RPM_BUILD_ROOT}
@@ -43,7 +42,8 @@ for i in bin sbin; do
     fi
 done
 
-python setup.py install --prefix=${RPM_BUILD_ROOT}/usr
+python setup.py install --prefix=${RPM_BUILD_ROOT}/usr \
+    --single-version-externally-managed --record=installed_files
 
 %clean
 if [[ $RPM_BUILD_ROOT != "/" ]]; then
@@ -52,12 +52,16 @@ fi
 
 %files
 %defattr(-,root,root)
-/usr/share/man/man8/*
-/usr/sbin/*
+/usr/share/man/man1/*
+/usr/bin/*
 /usr/lib*/python*/site-packages/*
 %config(noreplace) /etc/puppetdb/puppetdb.json
 
 %changelog
+* Tue Mar 19 2019   Tim Skirvin <tskirvin@fnal.gov>  2.1.4
+- moving the changelog to CHANGELOG.md going forwards
+- generally re-working for distribution via pypi
+
 * Wed Feb 06 2019   Tim Skirvin <tskirvin@fnal.gov>  2.1.3-0
 - puppetdb-resources - returns json as an array, not a list of hashes
 

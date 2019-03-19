@@ -2,3 +2,7 @@
 *.tar.gz
 *.spec
 Makefile
+*egg-info
+dist/
+installed_files
+build/
