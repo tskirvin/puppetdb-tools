@@ -1,6 +1,5 @@
 .*.sw*
 *.tar.gz
-*.spec
 Makefile
 *egg-info
 dist/
