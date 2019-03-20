@@ -19,4 +19,5 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 * Makefile.local - now includes Pypi (pip) bindings
 * setup.py, omdclient.spec - re-worked for setuptools instead of distutils.core
 * README.md - lots of updates on the path towards real distribution
+* `usr/sbin/*` moved to `usr/bin/*` (it just plays nicer with python)
 
