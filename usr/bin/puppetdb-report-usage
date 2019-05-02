@@ -14,8 +14,8 @@ import puppetdb, re, sys
 text = "query puppetdb for per-zone usage data"
 usage_text = "usage: %prog [options] [HOSTPATTERN]"
 
-layout = "%-40s  %8.1f GB  %7d"
-layout_head = "%-40s  %11s  %7s"
+layout = "%-40s  %8.1f GB  %7d  %9.2f TB"
+layout_head = "%-40s  %11s  %7s  %12s"
 
 #########################################################################
 ### main () #############################################################
@@ -29,11 +29,13 @@ def main():
     is_vm  = puppetdb.hostFact('is_virtual', opt)
     memory = puppetdb.hostFact('memoryfree_mb', opt)
     cores  = puppetdb.hostFact('processorcount', opt)
+    disks  = puppetdb.hostFact('disks', opt)
 
     zones = {}
     hosts = {}
     ram   = {}
     procs = {}
+    total_disks = {}
 
     for host in z.keys():
         zone    = z[host]
@@ -45,6 +47,25 @@ def main():
         zones[name] = 1
         ram[name]   = 0
         procs[name] = 0
+        total_disks[name] = 0
+
+    pb = 1024 * 1024 * 1024 * 1024 * 1024
+    tb = 1024 * 1024 * 1024 * 1024
+    gb = 1024 * 1024 * 1024
+
+    for host in disks.keys():
+        if host in hosts:
+            target = hosts[host]
+            if disks.get(target): pass
+            else:                 disks[target] = 0
+
+            count = 0
+            for disk, info in disks[host].iteritems():
+                try:
+                    count = count + info['size_bytes']
+                except Exception, e: pass
+
+            total_disks[target] = total_disks[target] + count
 
     for host in memory.keys():
         if host in hosts:
@@ -62,17 +83,21 @@ def main():
 
     total_ram = 0
     total_procs = 0
+    total_disk = 0
 
-    print layout_head % ("Zone/Virtual", "Memory", "Cores")
+    print layout_head % ("Zone/Virtual", "Memory", "Cores", "Disks")
     print ""
     for name in sorted(zones.keys()):
-        print layout % (name, ram[name] / 1024, procs[name])
+        print layout % (name, ram[name] / 1024, procs[name],
+            float(total_disks[name]) / tb)
         total_ram   = total_ram + ram[name]
         total_procs = total_procs + procs[name]
+        total_disk  = total_disk + total_disks[name]
 
     print ""
-    print layout % ("Total", total_ram / 1024, total_procs)
-    
+    print layout % ("Total", total_ram / 1024, total_procs,
+        float(total_disk) / tb)
+
     sys.exit(0)
 
 if __name__ == '__main__':
@@ -105,6 +130,8 @@ puppetdb-report-usage generates a printable report, by zone, that shows:
 
 =item 2. How many cores
 
+=item 3. How much disk space (in TB)
+
 =back
 
 Should support both v3 and v4 PuppetDB APIs.
@@ -125,7 +152,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2016, Fermi National Accelerator Laboratory
+Copyright 2016-2019, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
