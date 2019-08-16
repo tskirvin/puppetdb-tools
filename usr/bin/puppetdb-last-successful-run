@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -82,7 +82,7 @@ def main():
         items.append(node_print(node, mostRecent))
 
     if len(items) > 0:
-        for i in items: print i
+        for i in items: print(i)
 
     sys.exit(0)
 

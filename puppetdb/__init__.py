@@ -23,8 +23,8 @@ try:
     import urllib3
     urllib3.disable_warnings()
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-except Exception, e:
-    print e
+except Exception as e:
+    print(e)
     pass
 
 ## sub-urls that we support
@@ -115,13 +115,13 @@ def eventSuccessByReport (report_id, opt):
             payload['count-by']      = payload.pop('count_by')
 
     except SyntaxError:
-        raise 'Malformed query, check examples for help'
+        raise('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     try:
         url = generateUrl('event_counts', opt)
-        if opt.debug: print "url: %s" % url
-        if opt.debug: print "query: %s" % query
+        if opt.debug: print("url: %s" % url)
+        if opt.debug: print("query: %s" % query)
         r = request(url, headers=headers, params=payload)
         for event in r.json():
             if event['failures'] > 0: return False
@@ -129,10 +129,10 @@ def eventSuccessByReport (report_id, opt):
             if event['skips']    > 0: return False
         return True
 
-    except Exception, e:
-        raise e
+    except Exception as e:
+        raise(e)
     except:
-        raise 'bad json?: %s' % payload
+        raise 'bad json?: %s'
 
 def generateParser (text, usage_text):
     """
@@ -167,8 +167,8 @@ def generateUrl (action, optHash, *argArray):
 
     try:
         url = "%s%s" % (optHash.server, api[optHash.api_version][action])
-    except Exception, e:
-        raise "%s (bad api version?)"
+    except Exception as e:
+        raise("%s (bad api version?)")
 
     if len(argArray) > 0:
         url = "%s/%s" % (url, '/'.join(argArray))
@@ -185,13 +185,13 @@ def hostFact(fact, opt, value=None):
     payload = {}
 
     if opt.debug:
-        print "url: %s" % url
-        print "params: %s" % payload
+        print("url: %s" % url)
+        print("params: %s" % payload)
 
     headers = {'Accept': 'application/json'}
     try:
         r = request(url, headers=headers)
-    except Exception, e:
+    except Exception as e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
@@ -226,17 +226,17 @@ def hostFactHash(factArray, opt, value=None):
         payload = {
             'query': json.dumps(eval(query)),
         }
-    except Exception, e:
-        raise 'Malformed query, check examples for help'
+    except Exception as e:
+        raise('Malformed query, check examples for help')
 
     if opt.debug:
-        print "url: %s" % url
-        print "params: %s" % payload
+        print("url: %s" % url)
+        print("params: %s" % payload)
 
     headers = {'Accept': 'application/json'}
     try:
         r = request(url, headers=headers, params=payload)
-    except Exception, e:
+    except Exception as e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
@@ -262,13 +262,13 @@ def hostFactWild(fact, opt):
         p.error('Malformed query, check examples for help')
 
     if opt.debug:
-        print "url: %s" % url
-        print "params: %s" % payload
+        print("url: %s" % url)
+        print("params: %s" % payload)
 
     headers = {'Accept': 'application/json'}
     try:
         r = request(url, headers=headers, params=payload)
-    except Exception, e:
+    except Exception as e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
@@ -305,8 +305,8 @@ def hostFailedWhy(hostname, opt):
 
     headers = {'Accept': 'application/json'}
     if opt.debug:
-        print "url: %s" % url
-        print "payload: %s" % payload
+        print("url: %s" % url)
+        print("payload: %s" % payload)
 
     r = request(url, params=payload, headers=headers)
     text = []
@@ -333,8 +333,8 @@ def hostFailedWhyEvents(hostname, opt):
 
     headers = {'Accept': 'application/json'}
     if opt.debug:
-        print "url: %s" % url
-        print "payload: %s" % payload
+        print("url: %s" % url)
+        print("payload: %s" % payload)
 
     r = request(url, params=payload, headers=headers)
     text = []
@@ -367,13 +367,13 @@ def nodesFailed (host_search, opt):
         payload = { 'query': json.dumps(eval(query)) }
 
     except SyntaxError:
-        raise "Malformed query, check examples for help"
+        raise('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     try:
         if opt.debug:
-            print "url: %s" % url
-            print "payload: %s" % payload
+            print("url: %s" % url)
+            print("payload: %s" % payload)
         r = request(url, headers=headers, params=payload)
         items = []
         for node in r.json():
@@ -381,10 +381,10 @@ def nodesFailed (host_search, opt):
                 items.append(node['certname'])
         return items
 
-    except Exception, e:
-        raise e
+    except Exception as e:
+        raise(e)
     except:
-        raise 'bad json?: %s' % e
+        raise 'bad json?: %s'
 
 def nodesFailedEvents (host_search, opt):
     """
@@ -410,13 +410,13 @@ def nodesFailedEvents (host_search, opt):
             payload['count-by']      = payload.pop('count_by')
             payload['counts-filter'] = payload.pop('counts_filter')
     except SyntaxError:
-        raise "Malformed query, check examples for help"
+        raise('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     try:
         if opt.debug:
-            print "url: %s" % url
-            print "payload: %s" % payload
+            print("url: %s" % url)
+            print("payload: %s" % payload)
         r = request(url, headers=headers, params=payload)
         items = []
         for node in r.json():
@@ -424,10 +424,10 @@ def nodesFailedEvents (host_search, opt):
                 items.append(node['subject']['title'])
         return items
 
-    except Exception, e:
-        raise e
+    except Exception as e:
+        raise(e)
     except:
-        raise 'bad json?: %s' % e
+        raise 'bad json?: %s'
 
 def nodesList(host_search, opt):
     """
@@ -447,7 +447,7 @@ def nodesList(host_search, opt):
             else:                  name = node['name']
             items.append(name)
 
-    except Exception, e:
+    except Exception as e:
         raise e
 
     return items
@@ -482,11 +482,11 @@ def parseConfig():
 
     try:
         config = json.load(open(file, 'r'))
-    except IOError, e:
-        print "file error:  %s" % e
+    except IOError as e:
+        print("file error:  %s" % e)
         sys.exit (2)
-    except Exception, e:
-        print "unknown error:  %s" % e
+    except Exception as e:
+        print("unknown error:  %s" % e)
         sys.exit (2)
 
     return config
@@ -502,8 +502,8 @@ def queryNodes(query, opt):
 
     url = generateUrl('nodes', opt)
     if opt.debug:
-        print "url: %s" % url
-        print "params: %s" % payload
+        print("url: %s" % url)
+        print("params: %s" % payload)
 
     try:
         r = request(url, headers=headers, params=payload)
@@ -511,7 +511,7 @@ def queryNodes(query, opt):
         for node in r.json():
             items.append(node)
         return items
-    except Exception, e:
+    except Exception as e:
        raise "error (bad json?): %s" % e
 
 def reportChangeString(report, **kwargs):
@@ -529,11 +529,11 @@ def reportChangeString(report, **kwargs):
 
     text_match = '.*'
     try: text_match = opt.text
-    except Exception, e: text_match = '.*'
+    except Exception as e: text_match = '.*'
 
     try:
         data = report['logs']['data']
-    except Exception, e:
+    except Exception as e:
         raise 'tried to load data from report: %s' % e
 
     r = []
@@ -565,8 +565,8 @@ def reportsPerHost (host, opt):
         p.error('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
-    if opt.debug: print "url: %s" % url
-    if opt.debug: print "query: %s" % query
+    if opt.debug: print("url: %s" % url)
+    if opt.debug: print("query: %s" % query)
 
     try:
         r = request(url, headers=headers, params=payload)
@@ -576,8 +576,8 @@ def reportsPerHost (host, opt):
             items[ts] = event
         return items
 
-    except Exception, e:    raise e
-    except:                 raise ('bad json?: %s' % payload)
+    except Exception as e:  raise(e)
+    except:                 raise('bad json?: %s')
 
 
 def request(url, **kwargs):

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -38,22 +38,22 @@ def main():
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
-    if opt.debug: print "query: %s" % payload
+    if opt.debug: print("query: %s" % payload)
 
     headers = {'Accept': 'application/json'}
     try:
         url = puppetdb.generateUrl('resources', opt)
         r = puppetdb.request(url, headers=headers, params=payload)
-    except Exception, e:
+    except Exception as e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
-        print "no matches"
+        print("no matches")
         sys.exit(-1)
 
     for c in r.json():
-        print c['title'].lower()
-        if opt.debug: print c
+        print(c['title'].lower())
+        if opt.debug: print(c)
 
     sys.exit(0)
 

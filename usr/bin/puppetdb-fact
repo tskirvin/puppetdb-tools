@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -32,17 +32,17 @@ def main():
 
     headers = {'Accept': 'application/json'}
     try:
-        if opt.debug: print "url: %s" % url
+        if opt.debug: print("url: %s" % url)
         r = puppetdb.request(url, headers=headers)
         items = []
         for node in r.json():
             if opt.json:
-                print node
+                print(node)
             else:
                 certname = node['certname']
                 value    = node['value']
-                print "%-35s %-42s" % (certname, value)
-    except Exception, e:
+                print("%-35s %-42s" % (certname, value))
+    except Exception as e:
         p.error (e)
 
     sys.exit(0)

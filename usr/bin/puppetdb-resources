@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """
 Queries the puppetdb 'resources' endpoint to list matching resources of a
 given class ('File', 'Firewall').
@@ -46,18 +46,18 @@ def queryResourcesPuppetDb(type, opt):
     try:
         payload = { 'query': json.dumps(eval(query)) }
     except SyntaxError:
-        print 'Malformed query: %s' % query
+        print('Malformed query: %s' % query)
         return {}
 
     headers = {'Accept': 'application/json'}
     try:
         url = puppetdb.generateUrl('resources', opt)
         if opt.debug:
-            print "url: %s" % url
-            print "query: %s" % payload
+            print("url: %s" % url)
+            print("query: %s" % payload)
         r = puppetdb.request(url, headers=headers, params=payload)
-    except Exception, e:
-        print '%s (bad json?: %s)' % (e, payload)
+    except Exception as e:
+        print('%s (bad json?: %s)' % (e, payload))
         raise e
 
     if len(r.json()) == 0:
@@ -90,11 +90,11 @@ def main():
     try:
         nodes = queryResourcesPuppetDb(classname, opt)
         if not nodes:
-            print json.dumps([])
+            print(json.dumps([]))
         else:
-            print json.dumps(nodes, sort_keys=True, indent=4)
-    except Exception, e:
-        print "error: %s" % e
+            print(json.dumps(nodes, sort_keys=True, indent=4))
+    except Exception as e:
+        print("error: %s" % e)
         sys.exit(-1)
 
     sys.exit(0)

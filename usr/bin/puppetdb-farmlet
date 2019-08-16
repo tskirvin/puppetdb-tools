@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -53,7 +53,7 @@ def main():
         query = "['and', %s]" % (', '.join(s))
 
         payload = { 'query': json.dumps(eval(query)), }
-        if opt.debug: print query
+        if opt.debug: print(query)
 
     except SyntaxError:
         p.error('Malformed query, check examples for help')
@@ -61,7 +61,7 @@ def main():
     headers = {'Accept': 'application/json'}
     url = puppetdb.generateUrl('nodes', opt)
     if opt.debug:
-        print "url: %s\nquery: %s" % (url, query)
+        print("url: %s\nquery: %s" % (url, query))
 
     try:
         r = puppetdb.request(url, headers=headers, params=payload)
@@ -70,9 +70,9 @@ def main():
             if 'certname' in node: text.append(node['certname'])
             else:                  text.append(node['name'])
 
-        for i in sorted(text): print i
+        for i in sorted(text): print(i)
 
-    except Exception, e:
+    except Exception as e:
         p.error(e)
     except:
         p.error('bad json?: %s' % payload)

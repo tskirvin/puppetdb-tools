@@ -1,14 +1,14 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.1.4
+Version:        2.2.0
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0:        %{name}-%{version}-%{release}.tar.gz
 BuildArch:      noarch
-Requires:       python python-dateutil python-requests
+Requires:       python36 python36-dateutil python36-requests
 
-BuildRequires:  rsync python python-setuptools
+BuildRequires:  python36 python36-setuptools python3-rpm-macros rsync
 License:        BSD
 Distribution:   ECF-SSI
 URL:            https://github.com/tskirvin/puppetdb-tools
@@ -35,14 +35,13 @@ for i in `ls usr/bin`; do
 done
 
 rsync -Crlpt ./usr ${RPM_BUILD_ROOT}
-rsync -Crlpt ./etc ${RPM_BUILD_ROOT}
 for i in bin sbin; do
     if [ -d ${RPM_BUILD_ROOT}/$i ]; then
         chmod 0755 ${RPM_BUILD_ROOT}
     fi
 done
 
-python setup.py install --prefix=${RPM_BUILD_ROOT}/usr \
+python3 setup.py install --prefix=${RPM_BUILD_ROOT}/usr \
     --single-version-externally-managed --record=installed_files
 
 %clean
@@ -54,10 +53,13 @@ fi
 %defattr(-,root,root)
 /usr/share/man/man1/*
 /usr/bin/*
-/usr/lib*/python*/site-packages/*
-%config(noreplace) /etc/puppetdb/puppetdb.json
+%{python3_sitelib}/puppetdb/*py*
+%{python3_sitelib}/*egg-info
 
 %changelog
+* Fri Aug 16 2019   Tim Skirvin <tskirvin@fnal.gov>  2.2.0-0
+- converted everything to python 3
+
 * Tue Mar 19 2019   Tim Skirvin <tskirvin@fnal.gov>  2.1.4-0
 - moving the changelog to CHANGELOG.md going forwards
 - generally re-working for distribution via pypi

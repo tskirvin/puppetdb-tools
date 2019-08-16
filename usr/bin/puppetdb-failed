@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -40,7 +40,7 @@ def main():
         for i in sorted(items):
             if i in roles: role = roles[i]
             else:          role = 'unknown'
-            print "%-35s %3s %38s" % (i, '', role)
+            print("%-35s %3s %38s" % (i, '', role))
 
     sys.exit(0)
 

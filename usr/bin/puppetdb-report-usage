@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -37,7 +37,7 @@ def main():
     procs = {}
     total_disks = {}
 
-    for host in z.keys():
+    for host in list(z.keys()):
         zone    = z[host]
         if is_vm[host]:  virtual="virtual"
         else:            virtual="physical"
@@ -53,28 +53,28 @@ def main():
     tb = 1024 * 1024 * 1024 * 1024
     gb = 1024 * 1024 * 1024
 
-    for host in disks.keys():
+    for host in list(disks.keys()):
         if host in hosts:
             target = hosts[host]
             if disks.get(target): pass
             else:                 disks[target] = 0
 
             count = 0
-            for disk, info in disks[host].iteritems():
+            for disk, info in disks[host].items():
                 try:
                     count = count + info['size_bytes']
-                except Exception, e: pass
+                except Exception as e: pass
 
             total_disks[target] = total_disks[target] + count
 
-    for host in memory.keys():
+    for host in list(memory.keys()):
         if host in hosts:
             target = hosts[host]
             if ram.get(target): pass
             else:               ram[target] = 0
             ram[target] = ram[target] + memory[host]
 
-    for host in cores.keys():
+    for host in list(cores.keys()):
         if host in hosts:
             target = hosts[host]
             if procs.get(target): pass
@@ -85,18 +85,18 @@ def main():
     total_procs = 0
     total_disk = 0
 
-    print layout_head % ("Zone/Virtual", "Memory", "Cores", "Disks")
-    print ""
+    print(layout_head % ("Zone/Virtual", "Memory", "Cores", "Disks"))
+    print("")
     for name in sorted(zones.keys()):
-        print layout % (name, ram[name] / 1024, procs[name],
-            float(total_disks[name]) / tb)
+        print(layout % (name, ram[name] / 1024, procs[name],
+            float(total_disks[name]) / tb))
         total_ram   = total_ram + ram[name]
         total_procs = total_procs + procs[name]
         total_disk  = total_disk + total_disks[name]
 
-    print ""
-    print layout % ("Total", total_ram / 1024, total_procs,
-        float(total_disk) / tb)
+    print("")
+    print(layout % ("Total", total_ram / 1024, total_procs,
+        float(total_disk) / tb))
 
     sys.exit(0)
 

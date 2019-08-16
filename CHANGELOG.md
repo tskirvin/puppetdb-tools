@@ -8,7 +8,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.2.0] - 2019-08-16
+
 * puppetdb-report-usage - added disk data
+* converted all scripts and libraries to Python 3.
 
 ## [2.1.4] - 2019-03-19
 

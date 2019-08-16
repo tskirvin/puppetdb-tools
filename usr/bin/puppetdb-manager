@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -26,8 +26,8 @@ def main():
     primary   = puppetdb.hostFact('primary', opt)
     secondary = puppetdb.hostFact('secondary', opt)
 
-    print "%-23s %23s %15s %15s" % ('Host', 'Role', 'Primary', 'Secondary')
-    print
+    print("%-23s %23s %15s %15s" % ('Host', 'Role', 'Primary', 'Secondary'))
+    print()
 
     for host in sorted (roles.keys()):
         item = []
@@ -35,16 +35,16 @@ def main():
         item.append (roles[host])
 
         p = [ 'unknown' ]
-        if primary.has_key(host):
+        if host in primary:
             p = primary[host].split(',')
         item.append(' '.join(p))
 
         s = [ 'unknown' ]
-        if secondary.has_key(host):
+        if host in secondary:
             s = secondary[host].split(',')
         item.append(' '.join(s))
 
-        print "%-23s %23s %15s %15s" % (item[0], item[1], item[2], item[3])
+        print("%-23s %23s %15s %15s" % (item[0], item[1], item[2], item[3]))
 
     sys.exit(0)
 

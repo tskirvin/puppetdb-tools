@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -31,7 +31,7 @@ def main():
             disk_short = re.sub("^uuid__", "", disk)
             item.append (disk_short)
             item.append (uuids[host][disk])
-            print "%s %s %s" % (item[0], item[2], item[1])
+            print("%s %s %s" % (item[0], item[2], item[1]))
 
     sys.exit(0)
 

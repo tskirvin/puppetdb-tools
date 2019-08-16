@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -109,7 +109,7 @@ def hostTangled(hostname, opt):
     headers = {'Accept': 'application/json'}
     url = puppetdb.generateUrl('events', opt)
     if opt.debug:
-        print "url: %s\npayload: %s" % (url, payload)
+        print("url: %s\npayload: %s" % (url, payload))
     try:
         r = puppetdb.request(url, headers=headers, params=payload)
         items = {}
@@ -126,8 +126,8 @@ def hostTangled(hostname, opt):
 
         return text
 
-    except Exception, e:
-        print 'bad json?: %s (%s)' % (payload, e)
+    except Exception as e:
+        print('bad json?: %s (%s)' % (payload, e))
         sys.exit(-1)
 
 #########################################################################
@@ -171,7 +171,7 @@ def main():
     url = puppetdb.generateUrl('event_counts', opt)
     headers = {'Accept': 'application/json'}
     if opt.debug:
-        print "url: %s\npayload: %s" % (url, payload)
+        print("url: %s\npayload: %s" % (url, payload))
     try:
         r = puppetdb.request(url, headers=headers, params=payload)
         text = []
@@ -180,9 +180,9 @@ def main():
                 for i in hostTangled(node['subject']['title'], opt):
                     text.append(i)
 
-        for i in sorted(text): print i
+        for i in sorted(text): print(i)
 
-    except Exception, e:    p.error(e)
+    except Exception as e:    p.error(e)
     except:                 p.error('bad json?: %s' % payload)
 
     sys.exit(0)

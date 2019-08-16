@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -28,10 +28,10 @@ def main():
     query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
     try:
         for node in puppetdb.queryNodes(query, opt):
-            if 'certname' in node: print node['certname']
-            elif 'name' in node:   print node['name']
-    except Exception, e:
-        print "error: %s" % e
+            if 'certname' in node: print(node['certname'])
+            elif 'name' in node:   print(node['name'])
+    except Exception as e:
+        print("error: %s" % e)
 
     sys.exit(0)
 

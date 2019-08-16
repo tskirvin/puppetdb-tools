@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -25,19 +25,19 @@ def main():
     cmkroles = puppetdb.hostFact('enc_role', opt)
     instance = puppetdb.hostFact('omd_group', opt)
 
-    print "%-23s %49s" % ('host', 'checkmk_instance')
-    print
+    print("%-23s %49s" % ('host', 'checkmk_instance'))
+    print()
 
     for host in sorted (cmkroles.keys()):
         item = []
         item.append (re.split('\.', host)[0])
 
         p = [ 'unknown' ]
-        if instance.has_key(host): 
+        if host in instance: 
             p = instance[host].split(',')
         item.append(' '.join(p))
 
-        print "%-23s %49s" % (item[0], item[1])
+        print("%-23s %49s" % (item[0], item[1]))
 
     sys.exit(0)
 

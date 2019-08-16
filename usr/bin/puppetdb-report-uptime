@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -31,7 +31,7 @@ def main():
         k = kernels[host]
         u = float(uptimes[host]) / 60 / 60 / 24
 
-        print "%-25s  %-30s  %-15s" % (h, k, "%02.1f days" % u)
+        print("%-25s  %-30s  %-15s" % (h, k, "%02.1f days" % u))
 
     sys.exit(0)
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -38,13 +38,13 @@ def main():
         if i in nodes:
             failures = puppetdb.hostFailedWhy(i, opt)
             if len(failures) > 0:
-                if opt.short: print i
+                if opt.short: print(i)
                 else:
-                    print "Node %s - %d failure%s" % (i, len(failures),
-                        ('s' if len(failures) != 1 else '') )
+                    print("Node %s - %d failure%s" % (i, len(failures),
+                        ('s' if len(failures) != 1 else '') ))
                     for j in failures:
-                        print "  %s" % j
-                    print ""
+                        print("  %s" % j)
+                    print("")
 
     sys.exit(0)
 

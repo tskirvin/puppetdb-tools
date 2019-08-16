@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -25,14 +25,14 @@ def node_resources(node, type, title, opt):
     """
 
     url = puppetdb.generateUrl('nodes', opt, node, 'resources')
-    if opt.debug: print "url: %s" % url
+    if opt.debug: print("url: %s" % url)
     if type is not None:  url = "%s/%s" % (url, type)
     if title is not None: url = "%s/%s" % (url, title)
     headers = { 'Accept': 'application/json' }
 
     try:
         r = puppetdb.request(url, headers=headers)
-    except Exception, e:
+    except Exception as e:
         raise Exception('%s (bad url?: %s)' % (e, url))
 
     resources = []
@@ -66,17 +66,17 @@ def main():
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
-    if opt.debug: print "query: %s" % payload
+    if opt.debug: print("query: %s" % payload)
 
     headers = {'Accept': 'application/json'}
     try:
         nodes_url = puppetdb.generateUrl('nodes', opt)
         r = puppetdb.request(nodes_url, headers=headers, params=payload)
-    except Exception, e:
+    except Exception as e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
-        print "no matches"
+        print("no matches")
         sys.exit(-1)
 
     output = []
@@ -89,17 +89,17 @@ def main():
                 for key in sorted(i.keys()):
                     value = i[key]
                     if isinstance(value, dict):
-                        print "%s:" % key
+                        print("%s:" % key)
                         for j in sorted(value.keys()):
-                            print "    %s: %s" % (j, value[j])
+                            print("    %s: %s" % (j, value[j]))
                     elif isinstance(value, list):
-                        print "%s: %s " % (key, ', '.join(value))
+                        print("%s: %s " % (key, ', '.join(value)))
                     else:
-                        print "%s: %s" % (key, value)
-                print ""
+                        print("%s: %s" % (key, value))
+                print("")
         else:
-            print "no matching resources for %s" % name
-            print ""
+            print("no matching resources for %s" % name)
+            print("")
 
     sys.exit(0)
 

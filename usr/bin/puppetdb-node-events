@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #########################################################################
 ### Declarations ########################################################
@@ -78,11 +78,11 @@ def main():
     try:
         url = puppetdb.generateUrl('events', opt)
         r = puppetdb.request(url, headers=headers, params=payload)
-    except Exception, e:
+    except Exception as e:
         p.error('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
-        print "no matches"
+        print("no matches")
         sys.exit(-1)
 
     output = []
@@ -104,16 +104,16 @@ def main():
                 for key in sorted(node.keys()):
                     value = node[key]
                     if isinstance(value, dict):
-                        print "%s:" % key
+                        print("%s:" % key)
                         for j in sorted(value.keys()):
-                            print "    %s: %s" % (j, value[j])
+                            print("    %s: %s" % (j, value[j]))
                     elif isinstance(value, list):
-                        print "%s: %s " % (key, ', '.join(value))
+                        print("%s: %s " % (key, ', '.join(value)))
                     else:
-                        print "%s: %s" % (key, value)
-                print ""
+                        print("%s: %s" % (key, value))
+                print("")
 
-    print "\n".join(sorted(output))
+    print("\n".join(sorted(output)))
     sys.exit(0)
 
 if __name__ == '__main__':
