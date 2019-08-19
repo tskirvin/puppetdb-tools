@@ -8,6 +8,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.2.1] - 2019-08-19
+
+### Changed
+
+* ran all python through flake8 python linter, cleaned it up to match
+
+### Changed
+
 ## [2.2.0] - 2019-08-16
 
 * puppetdb-report-usage - added disk data

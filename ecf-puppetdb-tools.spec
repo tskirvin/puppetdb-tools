@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.0
+Version:        2.2.1
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -57,6 +57,9 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Mon Aug 19 2019   Tim Skirvin <tskirvin@fnal.gov>  2.2.1-0
+- flake8 python linting for all
+
 * Fri Aug 16 2019   Tim Skirvin <tskirvin@fnal.gov>  2.2.0-0
 - converted everything to python 3
 

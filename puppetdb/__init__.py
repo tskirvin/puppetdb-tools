@@ -13,7 +13,6 @@ role_fact = 'role'
 ### Declarations ########################################################
 #########################################################################
 
-from datetime import datetime, timedelta
 import dateutil.parser, dateutil.tz
 import json, optparse, os, re, requests, sys
 
@@ -70,12 +69,12 @@ def eventChangeString(event, **kwargs):
         new = event['new-value']
         old = event['old-value']
         title = event['resource-title']
-        type  = event['resource-type']
+        type = event['resource-type']
     else:
         new = event['new_value']
         old = event['old_value']
         title = event['resource_title']
-        type  = event['resource_type']
+        type = event['resource_type']
 
     status = event['status']
     message = event['message']
@@ -96,7 +95,7 @@ def eventChangeString(event, **kwargs):
 
     return string
 
-def eventSuccessByReport (report_id, opt):
+def eventSuccessByReport(report_id, opt):
     """
     Queries the puppetdb to pull down an event_counts response.  Returns
     True if there were no failures, noops, or skips, and False otherwise.
@@ -111,8 +110,8 @@ def eventSuccessByReport (report_id, opt):
             'count_by':     'certname',
         }
         if (opt.api_version < 4):
-            payload['summarize-by']  = payload.pop('summarize_by')
-            payload['count-by']      = payload.pop('count_by')
+            payload['summarize-by'] = payload.pop('summarize_by')
+            payload['count-by'] = payload.pop('count_by')
 
     except SyntaxError:
         raise('Malformed query, check examples for help')
@@ -125,8 +124,8 @@ def eventSuccessByReport (report_id, opt):
         r = request(url, headers=headers, params=payload)
         for event in r.json():
             if event['failures'] > 0: return False
-            if event['noops']    > 0: return False
-            if event['skips']    > 0: return False
+            if event['noops'] > 0: return False
+            if event['skips'] > 0: return False
         return True
 
     except Exception as e:
@@ -134,7 +133,7 @@ def eventSuccessByReport (report_id, opt):
     except:
         raise 'bad json?: %s'
 
-def generateParser (text, usage_text):
+def generateParser(text, usage_text):
     """
     Generate an OptionParser object for use across all scripts.  We want
     something consistent so we can use the same server/site/user options
@@ -159,7 +158,7 @@ def generateParser (text, usage_text):
         help='role fact (default: %default)')
     return p
 
-def generateUrl (action, optHash, *argArray):
+def generateUrl(action, optHash, *argArray):
     """
     Create a puppetdb URL based on optHash (which came from
     generateParser() and parse_args()) and an argument array.
@@ -168,7 +167,7 @@ def generateUrl (action, optHash, *argArray):
     try:
         url = "%s%s" % (optHash.server, api[optHash.api_version][action])
     except Exception as e:
-        raise("%s (bad api version?)")
+        raise("%s (bad api version?)", e)
 
     if len(argArray) > 0:
         url = "%s/%s" % (url, '/'.join(argArray))
@@ -215,8 +214,7 @@ def hostFactHash(factArray, opt, value=None):
         q1_array = []
         for f in factArray:
             q1_array.append('"%s"' % f.encode('ascii'))
-        q1_string = ', '.join(q1_array)
-        q1 = ['=', "path", factArray ]
+        q1 = ['=', "path", factArray]
         if value:
             q2 = ['=', 'value', value]
             query = ['and', q1, q2]
@@ -257,7 +255,7 @@ def hostFactWild(fact, opt):
 
     query = "['~', 'name', '%s']" % fact
     try:
-        payload = { 'query': json.dumps(eval(query))}
+        payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
@@ -386,14 +384,14 @@ def nodesFailed (host_search, opt):
     except:
         raise 'bad json?: %s'
 
-def nodesFailedEvents (host_search, opt):
+def nodesFailedEvents(host_search, opt):
     """
     Return a list of hosts that failed by looking at event counts.
     """
 
     url = generateUrl('event_counts', opt)
     try:
-        host_query = ['~', 'certname', '^%s$' % host_search ]
+        host_query = ['~', 'certname', '^%s$' % host_search]
         time_query = "['=', 'latest_report?', 'true']"
         query = "['and', %s, %s]" \
             % (host_query, time_query)
@@ -402,12 +400,12 @@ def nodesFailedEvents (host_search, opt):
             'query':         json.dumps(eval(query)),
             'summarize_by':  'certname',
             'count_by':      'certname',
-            'counts_filter': json.dumps(['>', 'failures', 0 ])
+            'counts_filter': json.dumps(['>', 'failures', 0])
         }
         # support old version of the API
         if (opt.api_version < 4):
-            payload['summarize-by']  = payload.pop('summarize_by')
-            payload['count-by']      = payload.pop('count_by')
+            payload['summarize-by'] = payload.pop('summarize_by')
+            payload['count-by'] = payload.pop('count_by')
             payload['counts-filter'] = payload.pop('counts_filter')
     except SyntaxError:
         raise('Malformed query, check examples for help')
@@ -439,9 +437,9 @@ def nodesList(host_search, opt):
 
     try:
         query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
-        payload = { 'query': json.dumps(eval(query)) }
+        payload = {'query': json.dumps(eval(query))}
         headers = {'Accept': 'application/json'}
-        r = request (url, headers=headers, params=payload)
+        r = request(url, headers=headers, params=payload)
         for node in r.json():
             if 'certname' in node: name = node['certname']
             else:                  name = node['name']
@@ -451,24 +449,6 @@ def nodesList(host_search, opt):
         raise e
 
     return items
-
-def nodePrintTimestamp(node, timestamp):
-    """
-    Create a human-readable string saying how long it's been since a node
-    has checked in.
-    """
-    if 'certname' in node: name = node['certname']
-    else:                  name = node['name']
-
-    ts = time_from_timestamp(node['report_timestamp'])
-    if ts is False: ts_string = "**no puppetdb records**"
-    else:           ts_string = ts.strftime("%Y-%m-%d %H:%M:%S %Z")
-
-    if name in roles: role = roles[name]
-    else:             role = 'unknown'
-
-    return output_string % (name, ts_string, role)
-
 
 def parseConfig():
     """
@@ -484,10 +464,10 @@ def parseConfig():
         config = json.load(open(file, 'r'))
     except IOError as e:
         print("file error:  %s" % e)
-        sys.exit (2)
+        sys.exit(2)
     except Exception as e:
         print("unknown error:  %s" % e)
-        sys.exit (2)
+        sys.exit(2)
 
     return config
 
@@ -496,7 +476,7 @@ def queryNodes(query, opt):
     """
     headers = {'Accept': 'application/json'}
     try:
-        payload = { 'query': json.dumps(eval(query))}
+        payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
         p.error('Malformed query: %s' % query)
 
@@ -542,12 +522,12 @@ def reportChangeString(report, **kwargs):
         source = entry['source']
         level = entry['level']
         if level in levels:
-            if re.search(text_match, msg): 
-                r.append("%s - %s" % (source, msg) )
+            if re.search(text_match, msg):
+                r.append("%s - %s" % (source, msg))
 
     return r
 
-def reportsPerHost (host, opt):
+def reportsPerHost(host, opt):
     """
     Return a hash of puppet reports on a per-host basis.  The keys are the
     timestamp of the report, the values are the reports themselves (a
@@ -560,7 +540,7 @@ def reportsPerHost (host, opt):
     try:
         host_query = ['=', 'certname', host.encode('ascii')]
         query = "%s" % host_query
-        payload = { 'query': json.dumps(eval(query)) }
+        payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
@@ -576,8 +556,8 @@ def reportsPerHost (host, opt):
             items[ts] = event
         return items
 
-    except Exception as e:  raise(e)
-    except:                 raise('bad json?: %s')
+    except Exception as e: raise(e)
+    except: raise('bad json?: %s')
 
 
 def request(url, **kwargs):
@@ -607,4 +587,3 @@ def timeFromTimestamp(timestamp):
     ts = dateutil.parser.parse(timestamp)
     local = ts.astimezone(dateutil.tz.tzlocal())
     return local
-
