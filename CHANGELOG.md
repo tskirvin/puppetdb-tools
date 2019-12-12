@@ -8,6 +8,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+* added CentOS 8 support (mostly Requires and BuildRequires changes)
+
 ## [2.2.1] - 2019-08-19
 
 ### Changed

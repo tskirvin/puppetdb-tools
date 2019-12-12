@@ -6,9 +6,15 @@ Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0:        %{name}-%{version}-%{release}.tar.gz
 BuildArch:      noarch
-Requires:       python36 python36-dateutil python36-requests
 
-BuildRequires:  python36 python36-setuptools python3-rpm-macros rsync
+%if 0%{?rhel} == 8
+Requires:       python3 python3-dateutil python3-requests
+BuildRequires:  python3 python3-setuptools python3-rpm-macros rsync perl-podlators
+%else
+Requires:       python36 python36-dateutil python36-requests
+BuildRequires:  python36 python36-setuptools python3-rpm-macros rsync perl-podlators
+%endif
+
 License:        BSD
 Distribution:   ECF-SSI
 URL:            https://github.com/tskirvin/puppetdb-tools
