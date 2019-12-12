@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.1
+Version:        2.2.2
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -63,6 +63,10 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Thu Dec 12 2019   Tim Skirvin <tskirvin@fnal.gov>  2.2.2-0
+- CentOS 8 support
+- adding minimum SSL versions
+
 * Mon Aug 19 2019   Tim Skirvin <tskirvin@fnal.gov>  2.2.1-0
 - flake8 python linting for all
 

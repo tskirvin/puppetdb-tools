@@ -26,6 +26,9 @@ except Exception as e:
     print(e)
     pass
 
+## necessary on CentOS 8 to use more recent SSL settings
+requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'HIGH:!DH:!aNULL'
+
 ## sub-urls that we support
 api = {
     3: {

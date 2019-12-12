@@ -8,7 +8,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### (will be 2.2.2)
+
 * added CentOS 8 support (mostly Requires and BuildRequires changes)
+* __init__.py - setting to stronger SSL by default
 
 ## [2.2.1] - 2019-08-19
 
