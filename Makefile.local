@@ -31,12 +31,12 @@ VERS := $(shell egrep ^Version *.spec | cut -d':' -f2 | tr -d ' ')
 ##############################################################################
 ## Set your own targets.  Note that these will appear at the top.
 
-all:  		rpm-7-nosign rpm-sign
-confirm: 	confirm-slf7
-copy:		copy-slf7
-rpm-sign: 	sign-slf7
+all:  		rpm-7-nosign rpm-8-nosign rpm-sign
+confirm: 	confirm-slf7 confirm-centos8
+copy:		copy-slf7 copy-centos8
+rpm-sign: 	sign-slf7 sign-centos8
 test: 		rpm-7-nosign
-deploy:		deploy-7
+deploy:		deploy-7 deploy-8
 
 #############################################################################
 ### PyPi ####################################################################
