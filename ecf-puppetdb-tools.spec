@@ -63,9 +63,10 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
-* Thu Dec 12 2019   Tim Skirvin <tskirvin@fnal.gov>  2.2.2-0
+* Tue Feb 25 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.2-0
 - CentOS 8 support
 - adding minimum SSL versions
+- puppetdb-uuid-by-host - changed beyond recognition (see CHANGELOG)
 
 * Mon Aug 19 2019   Tim Skirvin <tskirvin@fnal.gov>  2.2.1-0
 - flake8 python linting for all

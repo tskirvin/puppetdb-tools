@@ -4,7 +4,7 @@
 ### Declarations ########################################################
 #########################################################################
 
-import puppetdb, re, sys
+import puppetdb, sys
 
 #########################################################################
 ### Configuration #######################################################
@@ -22,16 +22,22 @@ def main():
     p = puppetdb.generateParser(text, usage_text)
     opt, args = p.parse_args()
 
-    uuids = puppetdb.hostFactWild('uuid__*', opt)
+    uuids = puppetdb.hostFact('partitions', opt)
 
-    for host in sorted (uuids.keys()):
-        for disk in sorted (uuids[host].keys()):
-            item = []
-            item.append (host)
-            disk_short = re.sub("^uuid__", "", disk)
-            item.append (disk_short)
-            item.append (uuids[host][disk])
-            print("%s %s %s" % (item[0], item[2], item[1]))
+    for host in sorted(uuids.keys()):
+        for partition in sorted(uuids[host].keys()):
+            disk = uuids[host][partition]
+            if 'uuid' in disk:
+                uuid = disk['uuid']
+            else:
+                continue
+            if 'label' in disk:
+                name = "LABEL=%s" % disk['label']
+            elif 'mount' in disk:
+                name = disk['mount']
+            else:
+                name = partition
+            print("%s %s %s" % (host, uuid, name))
 
     sys.exit(0)
 
@@ -47,7 +53,7 @@ if __name__ == '__main__':
 
 =head1 NAME
 
-puppetdb-uuid-by-host - list all uuid_* facts
+puppetdb-uuid-by-host - report of the partition facts on all hosts
 
 =head1 SYNOPSYS
 
@@ -55,8 +61,9 @@ B<puppetdb-uuid-by-host>
 
 =head1 USAGE
 
-puppetdb-uuid-by-host queries the puppetdb to find all system facts
-matching 'uuid__', and prints the appropriate report via STDOUT.
+puppetdb-uuid-by-host queries the puppetdb to find all systems with the
+fact 'partitions', and prints a report about all file system UUIDs via
+STDOUT.
 
 Should support both v3 and v4 PuppetDB APIs.
 
@@ -76,7 +83,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2015-2016, Fermi National Accelerator Laboratory
+Copyright 2015-2020, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.

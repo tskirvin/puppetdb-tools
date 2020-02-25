@@ -8,10 +8,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### (will be 2.2.2)
+## [2.2.2] - 2020-02-25
 
 * added CentOS 8 support (mostly Requires and BuildRequires changes)
 * __init__.py - setting to stronger SSL by default
+* puppetdb-uuid-by-host - completely reworked to use the `partitions`
+  fact, which is a default puppet fact so should be more useful to others
 
 ## [2.2.1] - 2019-08-19
 
