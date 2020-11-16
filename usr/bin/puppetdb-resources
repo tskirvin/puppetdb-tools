@@ -36,15 +36,15 @@ def queryResourcesPuppetDb(type, opt):
     """
 
     fields = []
-    fields.append ("['=', 'type', '%s']" % type)
+    fields.append("['=', 'type', '%s']" % type)
     if opt.hostname:
-        fields.append ("['~', 'certname', '^%s$' ]" % opt.hostname)
+        fields.append("['~', 'certname', '^%s$' ]" % opt.hostname)
     if opt.match:
-        fields.append ("['~', 'title', '^%s$' ]" % opt.match)
+        fields.append("['~', 'title', '^%s$' ]" % opt.match)
     query = "['and', %s]" % (', '.join(fields))
 
     try:
-        payload = { 'query': json.dumps(eval(query)) }
+        payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
         print('Malformed query: %s' % query)
         return {}
@@ -58,7 +58,7 @@ def queryResourcesPuppetDb(type, opt):
         r = puppetdb.request(url, headers=headers, params=payload)
     except Exception as e:
         print('%s (bad json?: %s)' % (e, payload))
-        raise e
+        raise(e)
 
     if len(r.json()) == 0:
         return []
@@ -75,15 +75,15 @@ def queryResourcesPuppetDb(type, opt):
 
 def main():
     p = puppetdb.generateParser(help_text, usage_text)
-    p.add_option ('--hostname', dest='hostname', default=None,
+    p.add_option('--hostname', dest='hostname', default=None,
         help="hostname to query (default: all hosts)")
-    p.add_option ('--match', dest='match', default=None,
+    p.add_option('--match', dest='match', default=None,
         help="resource title to match (default: None)")
     opt, args = p.parse_args()
 
     if len(args) < 1:
         p.print_help()
-        exit (-1)
+        exit(-1)
 
     classname = args[0]
 
@@ -189,7 +189,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2015-2016, Fermi National Accelerator Laboratory
+Copyright 2015-2020, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.

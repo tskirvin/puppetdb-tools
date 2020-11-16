@@ -117,7 +117,7 @@ def eventSuccessByReport(report_id, opt):
             payload['count-by'] = payload.pop('count_by')
 
     except SyntaxError:
-        raise('Malformed query, check examples for help')
+        raise Exception('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     try:
@@ -134,7 +134,7 @@ def eventSuccessByReport(report_id, opt):
     except Exception as e:
         raise(e)
     except:
-        raise 'bad json?: %s'
+        raise Exception('bad json?: %s')
 
 def generateParser(text, usage_text):
     """
@@ -170,7 +170,7 @@ def generateUrl(action, optHash, *argArray):
     try:
         url = "%s%s" % (optHash.server, api[optHash.api_version][action])
     except Exception as e:
-        raise("%s (bad api version?)", e)
+        raise Exception("%s (bad api version?)", e)
 
     if len(argArray) > 0:
         url = "%s/%s" % (url, '/'.join(argArray))
@@ -194,7 +194,7 @@ def hostFact(fact, opt, value=None):
     try:
         r = request(url, headers=headers)
     except Exception as e:
-        p.error('%s (bad json?: %s)' % (e, payload))
+        raise(e)
 
     if len(r.json()) == 0:
         return {}
@@ -228,7 +228,7 @@ def hostFactHash(factArray, opt, value=None):
             'query': json.dumps(eval(query)),
         }
     except Exception as e:
-        raise('Malformed query, check examples for help')
+        raise Exception('Malformed query, check examples for help')
 
     if opt.debug:
         print("url: %s" % url)
@@ -238,7 +238,7 @@ def hostFactHash(factArray, opt, value=None):
     try:
         r = request(url, headers=headers, params=payload)
     except Exception as e:
-        p.error('%s (bad json?: %s)' % (e, payload))
+        raise Exception('%s (bad json?: %s)' % (e, payload))
 
     if len(r.json()) == 0:
         return {}
@@ -260,7 +260,7 @@ def hostFactWild(fact, opt):
     try:
         payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
-        p.error('Malformed query, check examples for help')
+        raise Exception('Malformed query, check examples for help')
 
     if opt.debug:
         print("url: %s" % url)
@@ -270,7 +270,7 @@ def hostFactWild(fact, opt):
     try:
         r = request(url, headers=headers, params=payload)
     except Exception as e:
-        p.error('%s (bad json?: %s)' % (e, payload))
+        raise(e)
 
     if len(r.json()) == 0:
         return {}
@@ -300,9 +300,9 @@ def hostFailedWhy(hostname, opt):
     time_query = "['=', 'latest_report?', 'true']"
     query = "['and', %s, %s]" % (host_query, time_query)
     try:
-        payload = { 'query': json.dumps(eval(query))}
+        payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
-        p.error('Malformed query, check examples for help')
+        raise Exception('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     if opt.debug:
@@ -310,7 +310,6 @@ def hostFailedWhy(hostname, opt):
         print("payload: %s" % payload)
 
     r = request(url, params=payload, headers=headers)
-    text = []
     for event in r.json():
         return reportChangeString(event, opt=opt)
 
@@ -353,7 +352,7 @@ def hostRoles(opt):
     """
     return hostFact(opt.role_fact, opt)
 
-def nodesFailed (host_search, opt):
+def nodesFailed(host_search, opt):
     """
     Return a list of hosts that failed.
     """
@@ -362,10 +361,10 @@ def nodesFailed (host_search, opt):
     try:
         latest_query = "['=', 'latest_report?', True]"
         failed_query = "['=', 'status', 'failed']"
-        host_query = ['~', 'certname', '^%s$' % host_search ]
+        host_query = ['~', 'certname', '^%s$' % host_search]
         query = "['AND', %s, %s, %s]" \
             % (host_query, latest_query, failed_query)
-        payload = { 'query': json.dumps(eval(query)) }
+        payload = {'query': json.dumps(eval(query))}
 
     except SyntaxError:
         raise('Malformed query, check examples for help')
@@ -385,7 +384,7 @@ def nodesFailed (host_search, opt):
     except Exception as e:
         raise(e)
     except:
-        raise 'bad json?: %s'
+        raise Exception('bad json?: %s')
 
 def nodesFailedEvents(host_search, opt):
     """
@@ -428,7 +427,7 @@ def nodesFailedEvents(host_search, opt):
     except Exception as e:
         raise(e)
     except:
-        raise 'bad json?: %s'
+        raise Exception('bad json?: %s')
 
 def nodesList(host_search, opt):
     """
@@ -449,7 +448,7 @@ def nodesList(host_search, opt):
             items.append(name)
 
     except Exception as e:
-        raise e
+        raise(e)
 
     return items
 
@@ -481,7 +480,7 @@ def queryNodes(query, opt):
     try:
         payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
-        p.error('Malformed query: %s' % query)
+        raise Exception('Malformed query: %s' % query)
 
     url = generateUrl('nodes', opt)
     if opt.debug:
@@ -495,7 +494,7 @@ def queryNodes(query, opt):
             items.append(node)
         return items
     except Exception as e:
-       raise "error (bad json?): %s" % e
+        raise(e)
 
 def reportChangeString(report, **kwargs):
     """
@@ -517,7 +516,7 @@ def reportChangeString(report, **kwargs):
     try:
         data = report['logs']['data']
     except Exception as e:
-        raise 'tried to load data from report: %s' % e
+        raise Exception('tried to load data from report: %s' % e)
 
     r = []
     for entry in data:
@@ -545,7 +544,7 @@ def reportsPerHost(host, opt):
         query = "%s" % host_query
         payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
-        p.error('Malformed query, check examples for help')
+        raise Exception('Malformed query, check examples for help')
 
     headers = {'Accept': 'application/json'}
     if opt.debug: print("url: %s" % url)
@@ -560,7 +559,7 @@ def reportsPerHost(host, opt):
         return items
 
     except Exception as e: raise(e)
-    except: raise('bad json?: %s')
+    except: raise Exception('bad json?: %s')
 
 
 def request(url, **kwargs):

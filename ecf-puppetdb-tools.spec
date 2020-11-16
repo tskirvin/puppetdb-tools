@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.2
+Version:        2.2.3
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -49,6 +49,7 @@ done
 
 python3 setup.py install --prefix=${RPM_BUILD_ROOT}/usr \
     --single-version-externally-managed --record=installed_files
+exit 0
 
 %clean
 if [[ $RPM_BUILD_ROOT != "/" ]]; then
@@ -63,6 +64,10 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Mon Nov 16 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.3-0
+- lint fixes
+- lots of calls to Exception fixed
+
 * Tue Feb 25 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.2-0
 - CentOS 8 support
 - adding minimum SSL versions

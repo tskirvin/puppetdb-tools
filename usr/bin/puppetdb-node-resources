@@ -28,7 +28,7 @@ def node_resources(node, type, title, opt):
     if opt.debug: print("url: %s" % url)
     if type is not None:  url = "%s/%s" % (url, type)
     if title is not None: url = "%s/%s" % (url, title)
-    headers = { 'Accept': 'application/json' }
+    headers = {'Accept': 'application/json'}
 
     try:
         r = puppetdb.request(url, headers=headers)
@@ -54,15 +54,15 @@ def main():
         sys.exit(-1)
     else:             host_search = args[0]
 
-    if len(args) >= 2: resource_type  = args[1]
-    else:              resource_type  = None
+    if len(args) >= 2: resource_type = args[1]
+    else:              resource_type = None
 
     if len(args) >= 3: resource_title = args[2]
     else:              resource_title = None
 
     query = "['~', ['fact', 'fqdn'], '^%s$']" % host_search
     try:
-        payload = { 'query': json.dumps(eval(query))}
+        payload = {'query': json.dumps(eval(query))}
     except SyntaxError:
         p.error('Malformed query, check examples for help')
 
@@ -79,7 +79,6 @@ def main():
         print("no matches")
         sys.exit(-1)
 
-    output = []
     for node in r.json():
         if opt.api_version < 4: name = node['name']
         else:                   name = node['certname']
@@ -189,7 +188,7 @@ Based in part on https://github.com/JHaals/puppetdb-grep
 
 =head1 COPYRIGHT
 
-Copyright 2013-2016, Fermi National Accelerator Laboratory
+Copyright 2013-2020, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.

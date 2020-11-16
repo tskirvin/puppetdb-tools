@@ -18,8 +18,8 @@ usage_text = "usage: %prog [options] [HOSTPATTERN]"
 ### Subroutines #########################################################
 #########################################################################
 
-def hostManager():   return hostFact('manager')
-def hostPrimary():   return hostFact('primary')
+def hostManager(): return hostFact('manager')
+def hostPrimary(): return hostFact('primary')
 def hostSecondary(): return hostFact('secondary')
 
 def hostBackup(opt):
@@ -38,7 +38,7 @@ def hostBackup(opt):
     try:
         payload = { 'query': json.dumps(eval(query))}
     except SyntaxError:
-        raise 'Malformed query, check examples for help'
+        raise Exception('Malformed query, check examples for help')
 
     r = puppetdb.request(url, headers=headers, params=payload)
     if len(r.json()) == 0:
@@ -60,26 +60,26 @@ def main():
     p = puppetdb.generateParser(help_text, usage_text)
     opt, args = p.parse_args()
 
-    roles     = puppetdb.hostRoles(opt)
-    backup    = hostBackup(opt)
-    primary   = puppetdb.hostFact('primary', opt)
+    roles = puppetdb.hostRoles(opt)
+    backup = hostBackup(opt)
+    primary = puppetdb.hostFact('primary', opt)
     secondary = puppetdb.hostFact('secondary', opt)
 
-    for host in sorted (roles.keys()):
+    for host in sorted(roles.keys()):
         item = []
-        item.append (re.split('\.', host)[0])
-        item.append (roles[host])
+        item.append(re.split('\.', host)[0])
+        item.append(roles[host])
 
         bak = 'False'
         if host in backup: bak = 'True'
         item.append(bak)
 
-        p = [ 'unknown' ]
+        p = ['unknown']
         if host in primary:
             p = primary[host].split(',')
         item.append(' '.join(p))
 
-        s = [ 'unknown' ]
+        s = ['unknown']
         if host in secondary:
             s = secondary[host].split(',')
         item.append(' '.join(s))
@@ -144,7 +144,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2014-2016, Fermi National Accelerator Laboratory
+Copyright 2014-2020, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.
