@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.3
+Version:        2.2.4
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,9 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Wed Dec 15 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.4-0
+- nodesFailed() - AND -> and (newer puppetdb doesn't like the former)
+
 * Mon Nov 16 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.3-0
 - lint fixes
 - lots of calls to Exception fixed

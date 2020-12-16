@@ -8,6 +8,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.2.4] - 2020-12-16
+
+* __init__.py - 'AND' -> 'and' in nodesFailed() (this was causing problems
+  with newer puppetdb)
+
 ## [2.2.3] - 2020-11-16
 
 * lint fixes

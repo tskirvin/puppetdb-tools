@@ -362,7 +362,7 @@ def nodesFailed(host_search, opt):
         latest_query = "['=', 'latest_report?', True]"
         failed_query = "['=', 'status', 'failed']"
         host_query = ['~', 'certname', '^%s$' % host_search]
-        query = "['AND', %s, %s, %s]" \
+        query = "['and', %s, %s, %s]" \
             % (host_query, latest_query, failed_query)
         payload = {'query': json.dumps(eval(query))}
 
