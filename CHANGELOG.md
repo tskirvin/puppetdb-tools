@@ -8,6 +8,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+* puppetdb-stats - new script, look at metrics endpoint data from the
+  puppetdb server, meant for use with check\_mk, still experimental
+
 ## [2.2.4] - 2020-12-16
 
 * __init__.py - 'AND' -> 'and' in nodesFailed() (this was causing problems

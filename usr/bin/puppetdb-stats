@@ -1,0 +1,161 @@
+#!/usr/bin/python3
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+import puppetdb, re, sys
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+## Text for --help
+help_text = "puppetdb statistics"
+usage_text = "usage: %prog [options] [HOSTPATTERN]"
+
+queue_warn = 500
+queue_crit = 2000
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def apiVersion(optHash):
+    """
+    Get the API version, because a lot of checks depend on it.
+    """
+
+    try:
+        url = "%s/pdb/meta/v1/version" % (optHash.server)
+        headers = {'Accept': 'application/json'}
+        r = puppetdb.request(url, headers=headers)
+        return r.json()['version']
+    except Exception as e:
+        cleanExit(2, 'failed to parse api version: %s' % e)
+
+def metricsQueueSize(optHash, **kwargs):
+    """
+    Look up the queue depth.  queue_crit and queue_warn values are used to
+    decide whether to alert on these.
+    """
+    api_version = kwargs['api_version']
+    crit = optHash.queue_crit
+    warn = optHash.queue_warn
+
+    me = 'puppetdb_queue_size'
+
+    if re.match('^[67]', api_version):
+        url = ('%s/metrics/v2/read/puppetlabs.puppetdb.mq:name=global.depth' % optHash.server)
+    else:
+        raise Exception('unsupported API version: %s' % api_version)
+
+    headers = {'Accept': 'application/json'}
+    try:
+        r = puppetdb.request(url, headers=headers)
+        data = r.json()['value']
+        queueSize = data['Count']
+        if int(queueSize) >= crit:
+            return([2, "%s - CRIT: %s items in queue (>=%s)" % (me, queueSize, crit)])
+        elif int(queueSize) >= warn:
+            return([1, "%s - WARN: %s items in queue (>=%s)" % (me, queueSize, warn)])
+        else:
+            return([0, "%s - OK: %s items in queue (<%s)" % (me, queueSize, warn)])
+
+    except Exception as e:
+        return[3, '%s - UNKN: failed to pull queue size metrics: %s' % (me, e)]
+
+def cleanExit(code, text):
+    print(text)
+    sys.exit(code)
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    p = puppetdb.generateParser(help_text, usage_text)
+    p.add_option('--queue_warn', dest='queue_warn', action='store',
+        default=queue_warn,
+        help='queue size warning; default: default: \'%default\'')
+    p.add_option('--queue_crit', dest='queue_crit', action='store',
+        default=queue_crit,
+        help='queue size critical; default: default: \'%default\'')
+    opt, args = p.parse_args()
+
+    api_version = apiVersion(opt)
+
+    return_code = 0
+
+    ## only does the one check for now, but we're set up to do more
+    ## if there are more things to check
+    (code, text) = metricsQueueSize(opt, api_version=api_version)
+    if code >= return_code:
+        return_code = code
+    print(text)
+
+    sys.exit(return_code)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-stats - report on some statistics from the puppetdb server
+
+=head1 SYNOPSYS
+
+B<puppetdb-stats>
+
+B<puppetdb-stats> --server https://your.site:8081
+
+=head1 USAGE
+
+puppetdb-stats looks up stats about the puppetdb itself and prints them to
+STDOUT.  This is meant to be used with a monitoring site.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --queue_crit I<CRIT>
+
+=item --queue_warn I<WARN>
+
+Thresholds for throwing alerts.  If the queue has >CRIT alerts, throw an
+alert; if it has >WARN alerts, throw a warning.
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 TODO
+
+This is mostly proof-of-concept at this point.  I used to use
+<https://github.com/xorpaul/check_puppetdb> for this, but it's gotten
+fairly complicated with modern puppetdb versions.  It would be nice to
+load more of those checks into here over time.
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 COPYRIGHT
+
+Copyright 2021, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""
