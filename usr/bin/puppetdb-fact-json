@@ -1,0 +1,104 @@
+#!/usr/bin/python3
+
+#########################################################################
+### Declarations ########################################################
+#########################################################################
+
+import json, puppetdb, re, sys
+
+#########################################################################
+### Configuration #######################################################
+#########################################################################
+
+## Text for --help
+help_text = "query puppetdb to get a few system facts"
+usage_text = "usage: %prog [options]"
+
+# fields = [ 'node_location', 'processorcount' ]
+
+#########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+#########################################################################
+### main () #############################################################
+#########################################################################
+
+def main():
+    p = puppetdb.generateParser(help_text, usage_text)
+    opt, args = p.parse_args()
+
+    roles = puppetdb.hostRoles(opt)
+
+    facts = {}
+    for i in args:
+        facts[i] = puppetdb.hostFact(i, opt)
+
+    fieldnames = []
+    fieldnames.extend(args)
+
+    hosts = {}
+    for host in sorted(roles.keys()):
+        item = {}
+
+        for i in args:
+            if host in facts[i]:
+                item[i] = facts[i][host]
+            else: item[i] = ''
+
+        hosts[host] = item
+
+    print(json.dumps(hosts, sort_keys=True, indent=4))
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################
+### POD Documentation ###################################################
+#########################################################################
+## We use this to generate man pages.
+
+"""
+
+=head1 NAME
+
+puppetdb-fact-json - list values of multiple fields as a json output
+
+=head1 SYNOPSYS
+
+B<puppetdb-fact-json> FIELD1 FIELD2
+
+=head1 USAGE
+
+puppetdb-fact-json queries the puppetdb to find the specified lists of
+data from FIELD1, FIELD2, etc.
+
+The data is then sent to STDOUT as a human-parseable json output.
+
+Should support both v3 and v4 PuppetDB APIs.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --help
+
+Prints some short help documentation and exits.
+
+=back
+
+=head1 AUTHOR
+
+Tim Skirvin <tskirvin@fnal.gov>
+
+=head1 COPYRIGHT
+
+Copyright 2021, Fermi National Accelerator Laboratory
+
+This program is free software; you may redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+"""

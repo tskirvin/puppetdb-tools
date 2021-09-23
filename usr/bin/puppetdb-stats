@@ -55,12 +55,13 @@ def metricsQueueSize(optHash, **kwargs):
         r = puppetdb.request(url, headers=headers)
         data = r.json()['value']
         queueSize = data['Count']
+        perf = 'queue=%s' % (queueSize)
         if int(queueSize) >= crit:
-            return([2, "%s - CRIT: %s items in queue (>=%s)" % (me, queueSize, crit)])
+            return([2, "%s %s CRIT: %s items in queue (>=%s)" % (me, perf, queueSize, crit)])
         elif int(queueSize) >= warn:
-            return([1, "%s - WARN: %s items in queue (>=%s)" % (me, queueSize, warn)])
+            return([1, "%s %s WARN: %s items in queue (>=%s)" % (me, perf, queueSize, warn)])
         else:
-            return([0, "%s - OK: %s items in queue (<%s)" % (me, queueSize, warn)])
+            return([0, "%s %s OK: %s items in queue (<%s)" % (me, perf, queueSize, warn)])
 
     except Exception as e:
         return[3, '%s - UNKN: failed to pull queue size metrics: %s' % (me, e)]

@@ -8,8 +8,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.2.5] - 2021-09-23
+
 * puppetdb-stats - new script, look at metrics endpoint data from the
   puppetdb server, meant for use with check\_mk, still experimental
+
+* puppetdb-fact-json - new script, queries puppetdb for a few specific
+  facts and outputs them as human-readable json, for easy reading
 
 ## [2.2.4] - 2020-12-16
 

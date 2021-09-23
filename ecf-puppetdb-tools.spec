@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.4
+Version:        2.2.5
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,10 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Thu Sep 23 2021   Tim Skirvin <tskirvin@fnal.gov>  2.2.5-0
+- puppetdb-fact-json - output specified puppetdb facts as human-readable json
+- puppetdb-stats - experimental script to look at puppetdb statistics
+
 * Wed Dec 15 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.4-0
 - nodesFailed() - AND -> and (newer puppetdb doesn't like the former)
 
