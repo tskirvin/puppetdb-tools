@@ -15,35 +15,79 @@ help_text = "query puppetdb for system fact values"
 usage_text = "usage: %prog [options] fact_name [VALUE]"
 
 #########################################################################
+### Subroutines #########################################################
+#########################################################################
+
+def dottedFactValue(facts, fact):
+     """
+     Pull out the dotted fact value from facts.  I wish puppet would just
+     support it better!  Sigh.
+     """
+     pieces = fact.split('.')
+     data = facts
+     for i in pieces:
+         data = data[i]
+     return data
+
+#########################################################################
 ### main () #############################################################
 #########################################################################
 
 def main():
     p = puppetdb.generateParser(help_text, usage_text)
-    p.add_option ('--json', dest='json', action='store_true',
+    p.add_option('--json', dest='json', action='store_true',
         default=False, help="print json instead of the value")
     opt, args = p.parse_args()
 
     if len(args) < 1 or len(args) > 2:
         p.print_help()
-        exit (-1)
-
-    url = puppetdb.generateUrl('facts', opt, *args)
+        exit(-1)
 
     headers = {'Accept': 'application/json'}
-    try:
-        if opt.debug: print("url: %s" % url)
-        r = puppetdb.request(url, headers=headers)
-        items = []
-        for node in r.json():
-            if opt.json:
-                print(node)
-            else:
-                certname = node['certname']
-                value    = node['value']
-                print("%-35s %-42s" % (certname, value))
-    except Exception as e:
-        p.error (e)
+
+    fact = args[0]
+    if len(fact.split('.')) > 1:
+        url = puppetdb.generateUrl('inventory', opt)
+        if len(args) == 2:
+            data = {'query': '["=", "facts.%s", "%s"]' % (fact, args[1])}
+        else:
+            data = {}
+
+        try:
+            if opt.debug: print("url: %s\ndata: %s" % (url, data))
+            r = puppetdb.request(url, headers=headers, data=data)
+            for entry in r.json():
+                facts = entry['facts']
+                certname = entry['certname']
+                if opt.json:
+                    j = {
+                        'certname': entry['certname'],
+                        'environment': entry['environment'],
+                        'name': fact,
+                        'value': dottedFactValue(facts, fact),
+                    }
+                    print(j)
+                else:
+                    value = dottedFactValue(facts, fact)
+                    print("%-35s %-42s" % (certname, value))
+        except Exception as e:
+            p.error(e)
+
+    else:
+        url = puppetdb.generateUrl('facts', opt, *args)
+        data = {}
+        try:
+            if opt.debug: print("url: %s" % url)
+            r = puppetdb.request(url, headers=headers)
+            for node in r.json():
+                if opt.json:
+                    print(node)
+                else:
+                    certname = node['certname']
+                    value = node['value']
+                    print("%-35s %-42s" % (certname, value))
+        except Exception as e:
+            p.error(e)
 
     sys.exit(0)
 
@@ -69,9 +113,15 @@ B<puppetdb-fact> kernelrelease 2.6.32-431.17.1.el6.x86_64
 
 =head1 USAGE
 
-puppetdb-fact queries the puppetdb facts endpoint to find the values of
-the given fact on all nodes; additionally, we can filter by a given value
-(no wildcards).
+puppetdb-fact queries the puppetdb facts or inventory endpoint to find the
+values of the given fact on all nodes; additionally, we can filter by a
+given value (no wildcards).
+
+We decide which endpoint we're using based on the existance of dots in the
+fact query; the facts endpoint doesn't support dots but is generally a
+more specifically useful endpoint for this work, while the inventory
+endpoint is more general and supports dotted fact paths but is much
+slower.
 
 Outputs a list on STDOUT containing the hostname and the fact value.
 
@@ -106,7 +156,7 @@ Tim Skirvin <tskirvin@fnal.gov>
 
 =head1 COPYRIGHT
 
-Copyright 2016, Fermi National Accelerator Laboratory
+Copyright 2016-2023, Fermi National Accelerator Laboratory
 
 This program is free software; you may redistribute it and/or modify
 it under the same terms as Perl itself.

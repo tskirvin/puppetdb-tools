@@ -20,8 +20,7 @@ import json, optparse, os, re, requests, sys
 ## is the best I can do
 try:
     import urllib3
-    urllib3.disable_warnings()
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    requests.packages.urllib3.disable_warnings()
 except Exception as e:
     print(e)
     pass
@@ -47,6 +46,7 @@ api = {
         'nodes':         '/pdb/query/v4/nodes',
         'reports':       '/pdb/query/v4/reports',
         'resources':     '/pdb/query/v4/resources',
+        'inventory':     '/pdb/query/v4/inventory',
     }
 }
 

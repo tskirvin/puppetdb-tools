@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.5
+Version:        2.2.6
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,11 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Wed Mar 22 2023   Tim Skirvin <tskirvin@fnal.gov>  2.2.6-0
+- __init__.py - references the inventory endpoint for API v4
+- puppetdb-fact - uses the inventory endpoint to let us query dotted facts
+  (e.g. os.release.major, rather than lsbmajdistrelease)
+
 * Thu Sep 23 2021   Tim Skirvin <tskirvin@fnal.gov>  2.2.5-0
 - puppetdb-fact-json - output specified puppetdb facts as human-readable json
 - puppetdb-stats - experimental script to look at puppetdb statistics
