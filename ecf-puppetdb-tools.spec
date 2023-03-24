@@ -1,13 +1,13 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
 Version:        2.2.6
-Release:        0%{?dist}
+Release:        1%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Source0:        %{name}-%{version}-%{release}.tar.gz
 BuildArch:      noarch
 
-%if 0%{?rhel} == 8
+%if 0%{?rhel} >= 8
 Requires:       python3 python3-dateutil python3-requests
 BuildRequires:  python3 python3-setuptools python3-rpm-macros rsync perl-podlators
 %else
@@ -64,6 +64,9 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Wed Mar 22 2023   Tim Skirvin <tskirvin@fnal.gov>  2.2.6-1
+- add build logic for EL9
+
 * Wed Mar 22 2023   Tim Skirvin <tskirvin@fnal.gov>  2.2.6-0
 - __init__.py - references the inventory endpoint for API v4
 - puppetdb-fact - uses the inventory endpoint to let us query dotted facts
@@ -73,7 +76,7 @@ fi
 - puppetdb-fact-json - output specified puppetdb facts as human-readable json
 - puppetdb-stats - experimental script to look at puppetdb statistics
 
-* Wed Dec 15 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.4-0
+* Tue Dec 15 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.4-0
 - nodesFailed() - AND -> and (newer puppetdb doesn't like the former)
 
 * Mon Nov 16 2020   Tim Skirvin <tskirvin@fnal.gov>  2.2.3-0
