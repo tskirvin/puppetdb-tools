@@ -8,6 +8,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.2.7] - 2023-05-19
+
+* puppetdb-fact - handles rarely-used structured facts better (have to
+  parse the inventory endpoint data)
+
+## [2.2.6] - 2023-03-22
+
 * __init__.py - added references to the inventory endpoint for API v4
 * puppetdb-fact - added support for dotted facts (e.g. os.release.major)
   using the inventory endpoint

@@ -19,15 +19,17 @@ usage_text = "usage: %prog [options] fact_name [VALUE]"
 #########################################################################
 
 def dottedFactValue(facts, fact):
-     """
-     Pull out the dotted fact value from facts.  I wish puppet would just
-     support it better!  Sigh.
-     """
-     pieces = fact.split('.')
-     data = facts
-     for i in pieces:
-         data = data[i]
-     return data
+    """
+    Pull out the dotted fact value from facts.  I wish puppet would just
+    support it better!  Sigh.
+    """
+    pieces = fact.split('.')
+    data = facts
+    for i in pieces:
+        if i in data:
+            data = data[i]
+        else: return None
+    return data
 
 #########################################################################
 ### main () #############################################################
@@ -59,17 +61,20 @@ def main():
             for entry in r.json():
                 facts = entry['facts']
                 certname = entry['certname']
-                if opt.json:
-                    j = {
-                        'certname': entry['certname'],
-                        'environment': entry['environment'],
-                        'name': fact,
-                        'value': dottedFactValue(facts, fact),
-                    }
-                    print(j)
+                value = dottedFactValue(facts, fact)
+                if value is None:
+                    pass
                 else:
-                    value = dottedFactValue(facts, fact)
-                    print("%-35s %-42s" % (certname, value))
+                    if opt.json:
+                        j = {
+                            'certname': entry['certname'],
+                            'environment': entry['environment'],
+                            'name': fact,
+                            'value': value
+                        }
+                        print(j)
+                    else:
+                        print("%-35s %-42s" % (certname, value))
         except Exception as e:
             p.error(e)
 

@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.6
+Version:        2.2.7
 Release:        1%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,9 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Fri May 19 2023   Tim Skirvin <tskirvin@fnal.gov>  2.2.7-1
+- puppetdb-fact - handles rarely-used structured facts better
+
 * Wed Mar 22 2023   Tim Skirvin <tskirvin@fnal.gov>  2.2.6-1
 - add build logic for EL9
 
