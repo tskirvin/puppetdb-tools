@@ -26,10 +26,14 @@ def main():
         default=False, help='only print the node names; default: %default')
     opt, args = p.parse_args()
 
+    # only get hosts that are configured, skip hosts that we've removed
+    roles = puppetdb.hostRoles(opt)
+
     failed = puppetdb.nodesFailed ('.*', opt)
     if len(failed) == 0: sys.exit(0)
 
     for i in sorted(failed):
+        if i not in roles: continue
         failures = puppetdb.hostFailedWhy(i, opt)
         if len(failures) > 0:
             if opt.short: print(i)

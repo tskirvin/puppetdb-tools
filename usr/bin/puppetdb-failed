@@ -31,7 +31,7 @@ def main():
     if len(items) > 0:
         for i in sorted(items):
             if i in roles: role = roles[i]
-            else:          role = 'unknown'
+            else:          continue
             print("%-35s %3s %38s" % (i, '', role))
 
     sys.exit(0)
