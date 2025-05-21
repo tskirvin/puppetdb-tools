@@ -317,7 +317,7 @@ def hostFailedWhy(hostname, opt):
     url = generateUrl('reports', opt)
 
     host_query = "['=', 'certname', '%s']" % hostname
-    time_query = "['=', 'latest_report?', 'true']"
+    time_query = "['=', 'latest_report?', True]"
     query = "['and', %s, %s]" % (host_query, time_query)
     try:
         payload = {'query': json.dumps(eval(query))}
@@ -344,7 +344,7 @@ def hostFailedWhyEvents(hostname, opt):
     url = generateUrl('events', opt)
 
     host_query = "['=', 'certname', '%s']" % hostname
-    time_query = "['=', 'latest_report?', 'true']"
+    time_query = "['=', 'latest_report?', True]"
     query = "['and', %s, %s]" % (host_query, time_query)
     try:
         payload = { 'query': json.dumps(eval(query))}
@@ -414,7 +414,7 @@ def nodesFailedEvents(host_search, opt):
     url = generateUrl('event_counts', opt)
     try:
         host_query = ['~', 'certname', '^%s$' % host_search]
-        time_query = "['=', 'latest_report?', 'true']"
+        time_query = "['=', 'latest_report?', True]"
         query = "['and', %s, %s]" \
             % (host_query, time_query)
 

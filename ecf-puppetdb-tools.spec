@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.10
+Version:        2.2.11
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,10 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Wed May 21 2025   Tim Skirvin <tskirvin@fnal.gov>  2.2.11-0
+- fixes for openvoxdb 8
+- drops node matching options in puppetdb-failed and puppetdb-failed-list
+
 * Tue May 21 2024   Tim Skirvin <tskirvin@fnal.gov>  2.2.10-0
 - hostFact() - now supports dotted facts, kinda-sorta
 
