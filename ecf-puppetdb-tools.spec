@@ -1,6 +1,6 @@
 Name:           ecf-puppetdb-tools
 Summary:        Scripts for querying the puppetdb
-Version:        2.2.12
+Version:        2.2.13
 Release:        0%{?dist}
 Group:          Applications/System
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,10 @@ fi
 %{python3_sitelib}/*egg-info
 
 %changelog
+* Tue Jun 23 2026   Tim Skirvin <tskirvin@fnal.gov>  2.2.13-0
+- puppetdb-tangled - switching to isotime() for a time format to make new
+  openvoxdb happy
+
 * Wed May 21 2025   Tim Skirvin <tskirvin@fnal.gov>  2.2.12-0
 - puppetdb-failed - only show hosts that have roles
 - puppetdb-failed-lists - only show hosts that have roles

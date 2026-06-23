@@ -75,7 +75,7 @@ def time_from_timestamp(timestamp):
 def timestamp_from_time(time):
     """
     """
-    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
+    return time.isoformat()
 
 def hours_ago(hours):
     """
